@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using sharpOrrery;
 
 public class CelestialBody : MonoBehaviour
 {
-    private float mass;
+    private double mass;
     private Vector3 movement;
-    private  float invMass;
-    private  float angle;
+    private  double invMass;
+    private  double angle;
     private  Vector3 force;
     private Vector3? previousPosition;
-    private  float epoch;
+    private  double epoch;
     private bool isCentral;
     private Vector3 position;
     private Vector3 relativePosition;
@@ -21,8 +22,14 @@ public class CelestialBody : MonoBehaviour
     private Vector3 previousRelativePosition;
 
     private Action customInitialize;
-    private Action<float, DateTime> customAfterTick;
+    private Action<double, DateTime, double> customAfterTick;
+    private Action onOrbitCompleted;
+    private double speed;
 
+    public delegate void RevolutionDelegate(CelestialBody celestialBody);
+
+    public RevolutionDelegate revolution;
+    public double tilt;
 
     private void Awake()
     {
@@ -44,7 +51,7 @@ public class CelestialBody : MonoBehaviour
     }
 
     //if epoch start is not j2000, get epoch time from j2000 epoch time
-    private float getEpochTime(float epochTime)
+    private double getEpochTime(double epochTime)
     {
         if (this.epoch > 0)
         {
@@ -53,7 +60,7 @@ public class CelestialBody : MonoBehaviour
         return epochTime;
     }
 
-    private void setPositionFromDate(float epochTime, bool calculateVelocity)
+    private void setPositionFromDate(double epochTime, bool calculateVelocity)
     {
         epochTime = getEpochTime(epochTime);
         this.position = this.isCentral ? new Vector3() : this.orbitalElements.getPositionFromElements(this.orbitalElements.calculateElements(epochTime));
@@ -64,15 +71,15 @@ public class CelestialBody : MonoBehaviour
         }
     }
 
-    public float getAngleTo(string bodyName)
+    public double getAngleTo(string bodyName)
     {
         CelestialBody refBody = ns.U.getBody(bodyName);
         if (refBody)
         {
             var eclPos = (this.position - (refBody.getPosition())).normalized;
             eclPos.z = 0;
-            var angleX = Vector3.Angle(eclPos, new Vector3(1, 0, 0)) * Mathf.Deg2Rad;
-            var angleY = Vector3.Angle(eclPos, new Vector3(0, 1, 0)) * Mathf.Deg2Rad;
+            var angleX = Vector3.Angle(eclPos, new Vector3(1, 0, 0)) * ns.DEG_TO_RAD;
+            var angleY = Vector3.Angle(eclPos, new Vector3(0, 1, 0)) * ns.DEG_TO_RAD;
             //console.log(angleX, angleY);
             var angle = angleX;
             double q = Math.PI/2;
@@ -92,28 +99,29 @@ public class CelestialBody : MonoBehaviour
             this.customInitialize();
 
         if (this.customAfterTick != null)
-            this.customAfterTick(ns.U.epochTime, ns.U.date);
+            this.customAfterTick(ns.U.epochTime, ns.U.date, 0);
     }
 
     private void positionRelativeTo()
     {
         if (this.relativeTo)
         {
-            var central = ns.U.getBody(this.relativeTo);
-            if (central && central != = ns.U.getBody() /**/)
+            CelestialBody central = ns.U.getBody(this.relativeTo);
+            if (central && central != ns.U.getBody() /**/)
             {
-                this.position.add(central.position);
+                this.position += (central.getPosition());
                 //console.log(this.name+' pos rel to ' + this.relativeTo);
-                this.velocity && central.velocity && this.velocity.add(central.velocity);
+                this.velocity += (central.velocity);
+                // bomb
             }
         }
     }
 
-    private void beforeMove(float deltaTIncrement)
+    private void beforeMove(double deltaTIncrement)
     {
     }
 
-    private void afterMove(float deltaTIncrement)
+    private void afterMove(double deltaTIncrement)
     {
     }
 
@@ -121,96 +129,77 @@ public class CelestialBody : MonoBehaviour
 			Calculates orbit line from orbital elements. By default, the orbital elements might not be osculating, i.e. they might account for perturbations. But the given orbit would thus be different slightly from the planet's path, as the velocity is calculated by considering that the orbit is elliptic.
 			*/
 
-    private void getOrbitVertices(bool isElliptic)
+    private List<Vector3> getOrbitVertices(bool isElliptic)
     {
+        var points = new List<Vector3>();
+
         double startTime = getEpochTime(ns.U.currentTime);
         var elements = this.orbitalElements.calculateElements(startTime);
         var period = this.orbitalElements.calculatePeriod(elements, this.relativeTo);
-        if (!period) return;
+        if (!period) return points;
 
-        int incr = period/360;
-        var points = [];
-        var lastPoint;
-        var point;
-        var j;
-        var angle;
-        var step;
-        int total = 0;
-        var defaultOrbitalElements;
-        var computed;
-        var angleToPrevious;
-
+        int incr = (int)(period/360f);
+        var defaultOrbitalElements = new OrbitalElements();
 
         //if we want an elliptic orbit from the current planet's position (i.e. the ellipse from which the velocity was computed with vis-viva), setup fake orbital elements from the position
         if (isElliptic)
         {
-            defaultOrbitalElements =
-            {
-                base :
-                this.orbitalElements.calculateElements(startTime, null, true)
-            }
-            ;
-            defaultOrbitalElements.day =
-            {
-                1
-            }
-            ;
-            defaultOrbitalElements.
-            base.a /= 1000;
-            defaultOrbitalElements.
-            base.i /= ns.DEG_TO_RAD;
-            defaultOrbitalElements.
-            base.o /= ns.DEG_TO_RAD;
-            defaultOrbitalElements.
-            base.w /= ns.DEG_TO_RAD;
-            defaultOrbitalElements.
-            base.M /= ns.DEG_TO_RAD;
-            incr = ns.DAY;
-            startTime = 0;
+            defaultOrbitalElements.baseElements = this.orbitalElements.calculateElements(startTime, null, true);
+        
+			defaultOrbitalElements.day = new Day() {M = 1};
+			defaultOrbitalElements.baseElements.a /= 1000;
+			defaultOrbitalElements.baseElements.i /= ns.DEG_TO_RAD;
+			defaultOrbitalElements.baseElements.o /= ns.DEG_TO_RAD;
+			defaultOrbitalElements.baseElements.w /= ns.DEG_TO_RAD;
+			defaultOrbitalElements.baseElements.M /= ns.DEG_TO_RAD;
+			incr = ns.DAY;
+			startTime = 0;
         }
 
+        var total = 0f;
+        Vector3? lastPoint = null;
         for (int i = 0; total < 360; i++)
         {
-            computed = this.orbitalElements.calculateElements(startTime + (incr*i), defaultOrbitalElements);
+            OrbitalElements computed = this.orbitalElements.calculateElements(startTime + (incr * i), defaultOrbitalElements);
             //if(this.name=='moon')console.log(startTime+(incr*i));
-            point = this.orbitalElements.getPositionFromElements(computed);
-            if (lastPoint)
+            Vector3 point = this.orbitalElements.getPositionFromElements(computed);
+            if (lastPoint.HasValue)
             {
-                angle = point.angleTo(lastPoint)*ns.RAD_TO_DEG;
+                angle = Vector3.Angle(point, lastPoint.Value);
                 //make sure we do not go over 360.5 
                 if (angle > 1.3 || ((angle + total) > 360.5))
                 {
-                    for (j = 0; j < angle; j++)
+                    for (var j = 0; j < angle; j++)
                     {
-                        step = (incr*(i - 1)) + ((incr/angle)*j);
+                        var step = (incr*(i - 1)) + ((incr/angle)*j);
                         computed = this.orbitalElements.calculateElements(startTime + step, defaultOrbitalElements);
                         point = this.orbitalElements.getPositionFromElements(computed);
                         //when finishing the circle try to avoid going too far over 360 (break after first point going over 360)
                         if (total > 358)
                         {
-                            angleToPrevious = point.angleTo(points[points.length - 1])*ns.RAD_TO_DEG;
+                            var angleToPrevious = Vector3.Angle(point, points[points.Count - 1]);
                             if ((angleToPrevious + total) > 360)
                             {
-                                points.push(point);
+                                points.Add(point);
                                 break;
                             }
                         }
 
-                        points.push(point);
+                        points.Add(point);
                     }
-                    total += point.angleTo(lastPoint)*ns.RAD_TO_DEG;
+                    total += Vector3.Angle(point, lastPoint.Value);
                     lastPoint = point;
                     continue;
                 }
                 total += angle;
             }
-            points.push(point);
+            points.Add(point);
             lastPoint = point;
         }
         return points;
     }
 
-    private void afterTick(float deltaT, bool isPositionRelativeTo)
+    private void afterTick(double deltaT, bool isPositionRelativeTo)
     {
         if (!this.isCentral)
         {
@@ -220,28 +209,29 @@ public class CelestialBody : MonoBehaviour
             }
 
             var relativeToPos = ns.U.getBody(this.relativeTo).getPosition();
-            this.relativePosition.copy(this.position).sub(relativeToPos);
-            movement.copy(this.relativePosition).sub(this.previousRelativePosition);
-            this.speed = movement.length()/deltaT;
-            this.angle += this.relativePosition.angleTo(this.previousRelativePosition);
-            this.previousRelativePosition.copy(this.relativePosition);
+            this.relativePosition = this.position - relativeToPos;
+            movement = (this.relativePosition) - (this.previousRelativePosition);
+            this.speed = movement.magnitude / deltaT;
+            this.angle += Vector3.Angle(this.relativePosition, this.previousRelativePosition) * ns.DEG_TO_RAD;
+            this.previousRelativePosition = this.relativePosition;
 
             if (this.angle > ns.CIRCLE)
             {
-                this.angle = this.angle%ns.CIRCLE;
-                this.dispatchEvent(
-                {
-                    "revolution"
-                }
-            )
-                ;
-                if (this.onOrbitCompleted) this.onOrbitCompleted();
+                this.angle = this.angle % ns.CIRCLE;
+
+                if(revolution != null)
+                    revolution.Invoke(this);
+            
+                if (this.onOrbitCompleted != null)
+                    this.onOrbitCompleted();
             }
         }
-        if (this.customAfterTick) this.customAfterTick(ns.U.epochTime, ns.U.date, deltaT);
+
+        if (this.customAfterTick != null) 
+            this.customAfterTick(ns.U.epochTime, ns.U.date, deltaT);
     }
 
-    private Vector3 calculatePosition(float t)
+    private Vector3 calculatePosition(double t)
     {
         return this.orbitalElements.calculatePosition(t);
     }
@@ -259,6 +249,6 @@ public class CelestialBody : MonoBehaviour
     //return true/false if this body is orbiting the requested body
     private bool isOrbitAround(CelestialBody celestial)
     {
-        return celestial.name == = this.relativeTo;
+        return celestial == this.relativeTo;
     }
 }
