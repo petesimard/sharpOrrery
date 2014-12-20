@@ -1,19 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class Quadratic
+public class Quadratic : MoveAlgorithm
 {
-    private List<CelestialBody> bodies;
     private double halfDeltaT;
     private double inverted_deltaTSq;
-    private string name = "Quadratic";
-    private double onehalf_deltaTSq;
-    private double onehalf_halfDeltaTSq;
-    private double onesixth_deltaT3rd;
-    private double onethird_deltaT3rd;
-    private double onetwelvth_deltaT4th;
+   
 
-    public void moveBodies(double epochTime, double deltaT)
+    public override void moveBodies(double epochTime, double deltaT)
     {
         this.computeDeltaT(deltaT);
 

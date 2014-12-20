@@ -7,7 +7,7 @@ public class Ticker
     private List<CelestialBody> bodies = new List<CelestialBody>();
     private int calculationsPerTick = 1;
     private double deltaTIncrement = 1;
-    private Quadtratic integration;
+    private MoveAlgorithm integration;
     private double secondsPerTick = 1;
 
     public void setDT()
@@ -67,7 +67,8 @@ public class Ticker
     {
         bodies = new List<CelestialBody>(b);
 
-        integration = Quadratic.init(bodies);
+        integration = new Quadratic();
+        integration.init(b);
     }
 
     public void setCalculationsPerTick(int n)
