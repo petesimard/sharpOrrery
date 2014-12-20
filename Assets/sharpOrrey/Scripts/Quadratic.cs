@@ -1,115 +1,141 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
 
-public class Quadratic {
-
-		string name = "Quadratic";
+public class Quadratic
+{
     private List<CelestialBody> bodies;
-private  double halfDeltaT; 
+    private double halfDeltaT;
+    private double inverted_deltaTSq;
+    private string name = "Quadratic";
+    private double onehalf_deltaTSq;
+    private double onehalf_halfDeltaTSq;
+    private double onesixth_deltaT3rd;
+    private double onethird_deltaT3rd;
+    private double onetwelvth_deltaT4th;
 
-		public void moveBodies(double epochTime, double deltaT)
+    public void moveBodies(double epochTime, double deltaT)
+    {
+        this.computeDeltaT(deltaT);
+
+        //var i, b, n = {};
+        var n = new BodyCalcContainer[bodies.Count];
+        for (int i = 0; i < n.Length; i++)
         {
+            n[i] = new BodyCalcContainer();
+        }
 
-			this.computeDeltaT(deltaT);
+        //forces at t0;
+        Gravity.calculateGForces(bodies);
 
-			//var i, b, n = {};
-		    var n = new CelestialBody[bodies.Count];
+        //find accel at t0 and pos at t0.5
+        for (int i = 0; i < bodies.Count; i++)
+        {
+            CelestialBody b = bodies[i];
+            if (b.isStill) continue;
+            b.beforeMove(deltaT);
 
-			//forces at t0;
-			Gravity.calculateGForces(this.bodies);
-
-			//find accel at t0 and pos at t0.5
-			for(var i=0; i<this.bodies.Count; i++)
+            if (b.calculateFromElements)
             {
-				var b = this.bodies[i];
-				if(b.isStill) continue;
-				b.beforeMove(deltaT);
+                b.setPositionFromDate(epochTime + (halfDeltaT), false); //bomb - original didn't supply 2nd param. Defaults to false?
+            }
+            else
+            {
+                n[i].accel.Add(b.force*(float) b.invMass);
 
-				if(b.calculateFromElements) {
-					b.setPositionFromDate(epochTime + (this.halfDeltaT), false); //bomb - original didn't supply 2nd param. Defaults to false?
-				} else {
-					n[i].accel = [
-						b.force.clone().multiplyScalar(b.invMass)
-					];
-					n[i].pos = [
-						b.position.clone(),
-						//pos0.5 = pos0 + ((deltat/2) * vel0) + (0.5 * Math.pow((deltat / 2), 2)) * accel);
-						b.position.clone()
-							.add(b.getVelocity().multiplyScalar(this.halfDeltaT))
-							.add(n[i].accel[0].clone().multiplyScalar(this.onehalf_halfDeltaTSq))
-					];
-					b.position.copy(n[i].pos[1]);
-				}
-			}
+                n[i].pos.Add(b.position);
+                n[i].pos.Add(b.position + (b.getVelocity()*(float) halfDeltaT) + (n[i].accel[0]*(float) onehalf_halfDeltaTSq));
 
-			//forces at t0.5 (all this.bodies are positionned at t0.5)
-			Gravity.calculateGForces(this.bodies);
+                b.position = n[i].pos[1];
+            }
+        }
 
-			//find accel at t0.5 and positions at t1
-			for(i=0; i<this.bodies.length; i++){
-				b = this.bodies[i];
-				if(b.isStill) continue;
-				if(b.calculateFromElements) {
-					b.setPositionFromDate(epochTime + deltaT);
-				} else {
-					n[i].accel.push(b.force.clone().multiplyScalar(b.invMass));
+        //forces at t0.5 (all this.bodies are positionned at t0.5)
+        Gravity.calculateGForces(bodies);
 
-					//pos1 = pos0 + (vel0 * deltat) + (accel05 * 0.5 * Math.pow(deltaT, 2))
-					n[i].pos.push(
-						n[i].pos[0].clone()
-							.add(b.getVelocity().multiplyScalar(deltaT))
-							.add(n[i].accel[1].clone().multiplyScalar(this.onehalf_deltaTSq))
-					);
-					b.position.copy(n[i].pos[2]);
-				}
-			}
+        //find accel at t0.5 and positions at t1
+        for (int i = 0; i < bodies.Count; i++)
+        {
+            CelestialBody b = bodies[i];
+            if (b.isStill)
+                continue;
 
-			//forces at t1
-			Gravity.calculateGForces(this.bodies);
+            if (b.calculateFromElements)
+            {
+                b.setPositionFromDate(epochTime + deltaT, false);
+            }
+            else
+            {
+                n[i].accel.Add(b.force*(float) b.invMass);
 
-			//find accel at t1
-			for(i=0; i<this.bodies.length; i++){
-				b = this.bodies[i];
-				if(b.isStill) continue;
-				if(!b.calculateFromElements) {
-					n[i].accel.push(b.force.clone().multiplyScalar(b.invMass));
-				}
-			}
+                //pos1 = pos0 + (vel0 * deltat) + (accel05 * 0.5 * Math.pow(deltaT, 2))
+                n[i].pos.Add(
+                    n[i].pos[0] + (b.getVelocity()*(float) deltaT)
+                    + (n[i].accel[1]*(float) onehalf_deltaTSq));
 
-			//perform the actual integration
-			var c1, c2, deltaV, deltaP;
-			for(i=0; i<this.bodies.length; i++){		
+                b.position = (n[i].pos[2]);
+            }
+        }
 
-				b = this.bodies[i];
-				if(!b.calculateFromElements  && !b.isStill) {
-					c1 = n[i].accel[0].clone().multiplyScalar(-3)
-						.sub(n[i].accel[2])
-						.add(n[i].accel[1].clone().multiplyScalar(4))
-						.multiplyScalar(1/deltaT);
+        //forces at t1
+        Gravity.calculateGForces(bodies);
 
-					c2 = n[i].accel[0].clone()
-						.add(n[i].accel[2])
-						.sub(n[i].accel[1].clone().multiplyScalar(2))
-						.multiplyScalar(2)
-						.multiplyScalar(this.inverted_deltaTSq);
+        //find accel at t1
+        for (int i = 0; i < bodies.Count; i++)
+        {
+            CelestialBody b = bodies[i];
+            if (b.isStill)
+                continue;
+            if (!b.calculateFromElements)
+            {
+                n[i].accel.Add(b.force*(float) b.invMass);
+            }
+        }
 
-					deltaV = n[i].accel[0].clone()
-						.multiplyScalar(deltaT)
-						.add(c1.clone().multiplyScalar((this.onehalf_deltaTSq)))
-						.add(c2.clone().multiplyScalar((this.onethird_deltaT3rd)));
+        //perform the actual integration
+        var c1 = new Vector3();
+        var c2 = new Vector3();
+        var deltaV = new Vector3();
+        var deltaP = new Vector3();
 
-					deltaP = b.getVelocity()
-						.multiplyScalar(deltaT)
-						.add(n[i].accel[0].clone().multiplyScalar(this.onehalf_deltaTSq))
-						.add(c1.clone().multiplyScalar((this.onesixth_deltaT3rd)))
-						.add(c2.clone().multiplyScalar((this.onetwelvth_deltaT4th)));
+        for (int i = 0; i < bodies.Count; i++)
+        {
+            CelestialBody b = bodies[i];
 
-					this.bodies[i].position.copy(n[i].pos[0]).add(deltaP);	
-					this.bodies[i].velocity.add(deltaV);
-				}
+            if (!b.calculateFromElements && !b.isStill)
+            {
+                c1 = (n[i].accel[0]*-3)
+                     - n[i].accel[2]
+                     + (n[i].accel[1]*4)
+                     *(1f/(float) deltaT);
 
-				b.afterMove(deltaT);
-			}
+                c2 = n[i].accel[0]
+                     + (n[i].accel[2])
+                     - (n[i].accel[1]*2)
+                     *2
+                     *(float) inverted_deltaTSq;
 
+                deltaV = n[i].accel[0]
+                         *(float) deltaT
+                         + (c1*(float) (onehalf_deltaTSq))
+                         + (c2*(float) (onethird_deltaT3rd));
+
+                deltaP = b.getVelocity()
+                         *(float) deltaT
+                         + (n[i].accel[0]*(float) onehalf_deltaTSq)
+                         + (c1*(float) (onesixth_deltaT3rd))
+                         + (c2*(float) (onetwelvth_deltaT4th));
+
+                bodies[i].position = (n[i].pos[0]) + (deltaP);
+                bodies[i].velocity += (deltaV);
+            }
+
+            b.afterMove(deltaT);
+        }
+    }
+
+    private class BodyCalcContainer
+    {
+        public readonly List<Vector3> accel = new List<Vector3>();
+        public readonly List<Vector3> pos = new List<Vector3>();
+    }
 }

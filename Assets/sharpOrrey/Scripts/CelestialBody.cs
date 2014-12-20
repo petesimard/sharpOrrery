@@ -12,18 +12,18 @@ public class CelestialBody : MonoBehaviour
     public double radius;
     public bool isStill;
     public double? k;
+    public double invMass;
 
     public Vector3 velocity;
     public Vector3 position;
+    public Vector3 force;
     public CelestialBody relativeTo;
     public OrbitalElements.OrbitalElementsPieces orbit;
     public bool calculateFromElements;
 
 
     private Vector3 movement;
-    private  double invMass;
     private  double angle;
-    private  Vector3 force;
     private Vector3? previousPosition;
     private  double epoch;
     private Vector3 relativePosition;
