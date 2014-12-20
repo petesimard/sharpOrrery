@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 
 public static class Utils {
 
-    public static Int64 GetTime(this DateTime startDate)
+    public static double GetTime(this DateTime startDate)
     {
         Int64 retval = 0;
         var st = new DateTime(1970, 1, 1);
