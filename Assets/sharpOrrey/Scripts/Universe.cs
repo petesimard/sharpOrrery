@@ -9,15 +9,16 @@ public class Universe : MonoBehaviour
     public double epochTime;
     public DateTime date;
     public double currentTime;
+    public bool playing;
+
 
     private readonly Ticker ticker = new Ticker();
     private Dictionary<string, CelestialBody> bodies;
     private CelestialBody centralBody;
-    private bool playing;
     private Scenario scenario;
     private double size;
     private double startEpochTime;
-    private bool? usePhysics;
+    private bool? usePhysics = true;
 
     public void init(Scenario scenario)
     {
@@ -217,7 +218,11 @@ public class Universe : MonoBehaviour
         size = largestSMA.Value;
         //this.scene.setDimension(largestSMA, smallestSMA, largestRadius);
     }
-
+    
+    void Update()
+    {
+        tick();
+    }
 
     private void tick()
     {
