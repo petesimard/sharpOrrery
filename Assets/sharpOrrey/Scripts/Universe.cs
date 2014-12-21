@@ -23,6 +23,9 @@ public class Universe : MonoBehaviour
     private double startEpochTime;
     private bool? usePhysics = true;
 
+    public delegate void OnCelestialBodyAddedDelegate(CelestialBody body);
+    public OnCelestialBodyAddedDelegate OnCelestialBodyAdded;
+
     void Start()
     {
         scenarioLoader.LoadCommonBodies();
@@ -54,7 +57,7 @@ public class Universe : MonoBehaviour
         playing = false;
         epochTime = 0;
 
-        date = new DateTime(); // bomb (needs to go on UI time)
+        date = DateTime.Now; // bomb (needs to go on UI time)
         currentTime = startEpochTime = getEpochTime(date);
 
         createBodies(scenario);
@@ -62,7 +65,7 @@ public class Universe : MonoBehaviour
         calculateDimensions();
 
         initBodies(scenario);
-        ticker.setSecondsPerTick(scenario.secondsPerTick); // bomb - original used .initial
+        ticker.setSecondsPerTick(scenario.secondsPerTick);
         ticker.setCalculationsPerTick(scenario.calculationsPerTick.HasValue ? scenario.calculationsPerTick.Value : ns.defaultCalculationsPerTick);
     }
 
@@ -96,6 +99,9 @@ public class Universe : MonoBehaviour
 
             body.init();
             body.setPositionFromDate(currentTime, true);
+
+            if(OnCelestialBodyAdded != null)
+                OnCelestialBodyAdded.Invoke(body);
         }
 
 

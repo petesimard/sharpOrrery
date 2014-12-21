@@ -124,7 +124,7 @@ public class CelestialBody
     {
         if (this.relativeTo != null)
         {
-            CelestialBody central = this.relativeTo;
+            CelestialBody central = ns.U.getBody(this.relativeTo);
             if (central != null && central != ns.U.getBody() /**/)
             {
                 this.position += (central.getPosition());
@@ -225,7 +225,7 @@ public class CelestialBody
                 positionRelativeTo();
             }
 
-            var relativeToPos = this.relativeTo.getPosition();
+            var relativeToPos = ns.U.getBody(this.relativeTo).getPosition();
             this.relativePosition = this.position - relativeToPos;
             movement = (this.relativePosition) - (this.previousRelativePosition);
             this.speed = movement.magnitude / deltaT;
