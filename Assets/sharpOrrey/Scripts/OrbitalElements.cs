@@ -93,7 +93,7 @@ public class OrbitalElements
         {
             //vis viva to calculate speed (not velocity, i.e not a vector)
             OrbitalElementsPieces el = calculateElements(timeEpoch);
-            double speed = Math.Sqrt(ns.G*ns.U.getBody(relativeTo.name).mass*((2.0/(el.r.Value)) - (1.0/(el.a.Value))));
+            double speed = Math.Sqrt(ns.G*ns.U.getBody(relativeTo).mass*((2.0/(el.r.Value)) - (1.0/(el.a.Value))));
 
             //now calculate velocity orientation, that is, a vector tangent to the orbital ellipse
             double? k = el.r/el.a;
@@ -160,6 +160,11 @@ public class OrbitalElements
         if (forcedOrbitalElements == null && this.orbitalElements == null)
             return null;
 
+/*        Debug.Log(this.name);
+
+        Debug.Log(this.orbitalElements);
+        Debug.Log(this.orbitalElements.cy);*/
+
         OrbitalElementsPieces orbitalElements = forcedOrbitalElements ?? this.orbitalElements;
 
         /*
@@ -205,19 +210,23 @@ public class OrbitalElements
             {
                 double variation = 0.0;
 
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("a"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("e"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("i"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("l"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("lp"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("o"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("E"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("M"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("r"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("t"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("v"), computed, T);
-                CalculateVariation(orbitalElements.baseElements, orbitalElements.baseElements.GetType().GetField("w"), computed, T);
-
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("a"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("e"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("i"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("l"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("lp"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("o"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("E"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("M"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("r"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("t"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("v"), computed, T);
+                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("w"), computed, T);
+/*
+							variation = orbitalElements.cy ? orbitalElements.cy[el] : (orbitalElements.day[el] * ns.CENTURY);
+							variation = variation || 0;
+							computed[el] = orbitalElements.base[el] + (variation * T);
+ */
 
                 // Bomb
             }
@@ -259,7 +268,7 @@ public class OrbitalElements
 
         computed.r = computed.pos.magnitude;
         computed.v = Math.Atan2(computed.pos.y, computed.pos.x);
-        if (!string.IsNullOrEmpty(orbitalElements.relativeTo))
+        if (orbitalElements.relativeTo != null)
         {
             var relativeTo = ns.U.getBody(orbitalElements.relativeTo);
             if (relativeTo.tilt.HasValue)
@@ -273,10 +282,40 @@ public class OrbitalElements
 
     private void CalculateVariation(OrbitalElementsPieces orbitalElementsPieces, FieldInfo fieldInfo, OrbitalElementsPieces computed, double T)
     {
-        double variation = orbitalElementsPieces.cy != null ? (double) fieldInfo.GetValue(orbitalElements.cy) : ((double) fieldInfo.GetValue(orbitalElements.day)*ns.CENTURY);
+/*        Debug.Log(fieldInfo);
+        Debug.Log(orbitalElementsPieces.cy);
+        Debug.Log(orbitalElementsPieces.day);*/
+/*
+        					variation = orbitalElements.cy ? orbitalElements.cy[el] : (orbitalElements.day[el] * ns.CENTURY);
+							variation = variation || 0;
+							computed[el] = orbitalElements.base[el] + (variation * T);
+ */
 
-        double val = (double) fieldInfo.GetValue(orbitalElements.baseElements) + (variation*T);
-        fieldInfo.SetValue(computed, val);
+        double variation = 0;
+
+        if (orbitalElementsPieces.cy != null)
+        {
+            var baseVal = (double?) fieldInfo.GetValue(orbitalElements.cy);
+            if (baseVal.HasValue)
+                variation = baseVal.Value;
+        }
+        else
+        {
+            var baseVal = (double?) fieldInfo.GetValue(orbitalElements.day);
+            if (baseVal.HasValue)
+                variation = baseVal.Value *ns.CENTURY;
+        }
+
+        if (((double?) fieldInfo.GetValue(orbitalElements.baseElements)).HasValue)
+        {
+            double val = (double)fieldInfo.GetValue(orbitalElements.baseElements) + (variation * T);
+            fieldInfo.SetValue(computed, val);
+        }
+        else
+        {
+            double val = (variation * T);
+            fieldInfo.SetValue(computed, val);
+        }
     }
 
     public Vector3 getPositionFromElements(OrbitalElementsPieces computed)
@@ -293,14 +332,14 @@ public class OrbitalElements
         return pos;
     }
 
-    public double calculatePeriod(OrbitalElementsPieces elements, string relativeTo)
+    public double calculatePeriod(OrbitalElementsPieces elements, CelestialBody relativeTo)
     {
         double period = 0.0;
         if (orbitalElements != null && orbitalElements.day != null && orbitalElements.day.M.HasValue)
         {
             period = 360/orbitalElements.day.M.Value;
         }
-        else if (ns.U.getBody(relativeTo) && ns.U.getBody(relativeTo).k.HasValue && elements != null)
+        else if (ns.U.getBody(relativeTo) != null && ns.U.getBody(relativeTo).k.HasValue && elements != null)
         {
             period = 2.0*Math.PI*Math.Sqrt(Math.Pow(elements.a.Value/(ns.AU*1000.0), 3))/ns.U.getBody(relativeTo).k.Value;
         }
@@ -329,7 +368,7 @@ public class OrbitalElements
         public double? o; // 	Longitude of Ascending Node (Î©)
         public Vector3 pos;
         public double? r; //	distance du centre
-        public string relativeTo;
+        public CelestialBody relativeTo;
         public double? t; // Time maybe??
         public double tilt;
         public double? v; //	true anomaly

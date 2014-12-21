@@ -11,19 +11,28 @@ public class Universe : MonoBehaviour
     public double currentTime;
     public bool playing;
 
+    public ScenarioLoader scenarioLoader;
+
 
     private readonly Ticker ticker = new Ticker();
     private Dictionary<string, CelestialBody> bodies;
     private CelestialBody centralBody;
-    private Scenario scenario;
+    public Scenario scenario;
+
     private double size;
     private double startEpochTime;
     private bool? usePhysics = true;
 
-    public void init(Scenario scenario)
+    void Start()
     {
-        name = scenario.name;
-        this.scenario = scenario;
+        scenarioLoader.LoadCommonBodies();
+        scenarioLoader.InitScenarios();
+        init();
+    }
+
+    public void init()
+    {
+        //name = scenario.name;
         //var initialSettings = _.extend({}, scenario.defaultGuiSettings, qstrSettings, scenario.forcedGuiSettings);
         //console.log(initialSettings);
 
@@ -67,10 +76,8 @@ public class Universe : MonoBehaviour
             var body = new CelestialBody();
             body.AssignInitialValues(scenario.bodies[bodyName]);
             body.name = bodyName;
-            centralBody = (centralBody && centralBody.mass > body.mass) ? centralBody : body;
+            centralBody = (centralBody != null && centralBody.mass > body.mass) ? centralBody : body;
             bodies[body.name] = body;
-
-            bodies.Add(bodyName, body);
         }
 
         centralBody.isCentral = true;
@@ -146,7 +153,7 @@ public class Universe : MonoBehaviour
         {
             CelestialBody b = celestialBodyKV.Value;
 
-            if (b == central || (b.relativeTo && b.relativeTo != central))
+            if (b == central || (b.relativeTo != null && b.relativeTo != central))
                 continue;
 
             b.velocity += central.velocity;
@@ -181,14 +188,15 @@ public class Universe : MonoBehaviour
         }
     }
 
-    public CelestialBody getBody(string name = null)
+    // Original code used null name to represent central body
+    public CelestialBody getBody(CelestialBody body = null)
     {
-        if (name == "central" || string.IsNullOrEmpty(name))
+        if (body == null)
         {
             return centralBody;
         }
 
-        if (!bodies.ContainsKey(name))
+        if (!bodies.ContainsKey(body.name))
             return null;
 
         return bodies[name];
@@ -206,7 +214,7 @@ public class Universe : MonoBehaviour
 
         double? largestSMA = bodies.Values.Where(b => !b.isCentral && b.orbit != null).Max(b => b.orbit.baseElements.a);
 
-        double? smallestSMA = bodies.Values.Where(b => !b.isCentral && b.orbit != null && (!b.relativeTo || b.relativeTo == centralBody)).Max(b => b.orbit.baseElements.a);
+        double? smallestSMA = bodies.Values.Where(b => !b.isCentral && b.orbit != null && (b.relativeTo == null || b.relativeTo == centralBody)).Max(b => b.orbit.baseElements.a);
 
 
         smallestSMA *= ns.KM;

@@ -4,7 +4,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using sharpOrrery;
 
-public class CelestialBody : MonoBehaviour
+public class CelestialBody
 {
     public double mass;
     public bool isCentral;
@@ -13,6 +13,7 @@ public class CelestialBody : MonoBehaviour
     public bool isStill;
     public double? k;
     public double invMass;
+    public string name;
 
     public Vector3 velocity;
     public Vector3 position;
@@ -41,9 +42,11 @@ public class CelestialBody : MonoBehaviour
 
     public RevolutionDelegate revolution;
 
-    public void AssignInitialValues(OrbitalElements.OrbitalElementsPieces info)
+    public void AssignInitialValues(CelestialBodyDefinition info)
     {
         // BOMB
+
+        info.AssignDataToCelestialBody(this);
     }
 
     public void init()
@@ -86,10 +89,10 @@ public class CelestialBody : MonoBehaviour
         }
     }
 
-    public double getAngleTo(string bodyName)
+    public double getAngleTo(CelestialBody body)
     {
-        CelestialBody refBody = ns.U.getBody(bodyName);
-        if (refBody)
+        CelestialBody refBody = ns.U.getBody(body);
+        if (refBody != null)
         {
             var eclPos = (this.position - (refBody.getPosition())).normalized;
             eclPos.z = 0;
@@ -119,10 +122,10 @@ public class CelestialBody : MonoBehaviour
 
     private void positionRelativeTo()
     {
-        if (this.relativeTo)
+        if (this.relativeTo != null)
         {
             CelestialBody central = this.relativeTo;
-            if (central && central != ns.U.getBody() /**/)
+            if (central != null && central != ns.U.getBody() /**/)
             {
                 this.position += (central.getPosition());
                 //console.log(this.name+' pos rel to ' + this.relativeTo);
@@ -150,7 +153,7 @@ public class CelestialBody : MonoBehaviour
 
         double startTime = getEpochTime(ns.U.currentTime);
         var elements = this.orbitalElements.calculateElements(startTime);
-        var period = this.orbitalElements.calculatePeriod(elements, this.relativeTo.name);
+        var period = this.orbitalElements.calculatePeriod(elements, this.relativeTo);
 
         double incr = period/360.0;
         var defaultOrbitalElements = new OrbitalElements();
