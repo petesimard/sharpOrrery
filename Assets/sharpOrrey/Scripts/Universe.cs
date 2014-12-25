@@ -36,19 +36,7 @@ public class Universe : MonoBehaviour
 
     public void init()
     {
-        var eulers = new Vector3(50, 0, 90);
-        var eulersD = new Vector3d(50, 0, 90);
-
-
-        Debug.Log(".Euler: " + Quaternion.Euler(eulers)); // (0.6, 0.4, -0.4, 0.5)
-        Debug.Log(".EulerD: " + QuaternionD.EulerDeg(eulersD)); // (0.6, 0.4, -0.4, 0.5)
-
-        return;
-        // Test Quaternion Library
-
-
-
-
+     
         //name = scenario.name;
         //var initialSettings = _.extend({}, scenario.defaultGuiSettings, qstrSettings, scenario.forcedGuiSettings);
         //console.log(initialSettings);
@@ -71,8 +59,11 @@ public class Universe : MonoBehaviour
         playing = false;
         epochTime = 0;
 
-        date = DateTime.Now; // bomb (needs to go on UI time)
+//        date = DateTime.Now; // bomb (needs to go on UI time)
+        date = new DateTime(2014, 1, 1, 12, 0, 0, DateTimeKind.Utc);
         currentTime = startEpochTime = getEpochTime(date);
+        Debug.Log(startEpochTime);
+
 
         createBodies(scenario);
 
@@ -148,8 +139,8 @@ public class Universe : MonoBehaviour
         double massRatio = 0.0;
 
         double massCenter_mass = 0.0;
-        var massCenter_pos = new Vector3();
-        var massCenter_momentum = new Vector3();
+        var massCenter_pos = new Vector3d();
+        var massCenter_momentum = new Vector3d();
 
         foreach (var celestialBodyKV in bodies)
         {
@@ -159,15 +150,15 @@ public class Universe : MonoBehaviour
                 continue;
             massCenter_mass += b.mass;
             massRatio = b.mass/massCenter_mass;
-            massCenter_pos = (massCenter_pos + b.getPosition())*(float) massRatio;
-            massCenter_momentum = (massCenter_momentum + b.getVelocity())*(float) b.mass;
+            massCenter_pos = (massCenter_pos + b.getPosition())* massRatio;
+            massCenter_momentum = (massCenter_momentum + b.getVelocity())* b.mass;
         }
 
-        massCenter_momentum *= (float) (1f/massCenter_mass);
+        massCenter_momentum *=  (1/massCenter_mass);
 
         massRatio = massCenter_mass/central.mass;
-        central.velocity = massCenter_momentum*(float) (massRatio*-1);
-        central.position = massCenter_pos*(float) (massRatio*-1);
+        central.velocity = massCenter_momentum* (massRatio*-1);
+        central.position = massCenter_pos* (massRatio*-1);
 
         foreach (var celestialBodyKV in bodies)
         {
@@ -277,7 +268,7 @@ public class Universe : MonoBehaviour
 
     public double getEpochTime(DateTime userDate)
     {
-        return (userDate.GetTime() - ns.J2000);
+        return (userDate.GetTime() - ns.J2000) / 1000;
     }
 
     public bool isPlaying()

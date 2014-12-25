@@ -15,20 +15,20 @@ public class CelestialBody
     public double invMass;
     public string name;
 
-    public Vector3 velocity;
-    public Vector3 position;
-    public Vector3 force;
+    public Vector3d velocity;
+    public Vector3d position;
+    public Vector3d force;
     public CelestialBody relativeTo;
     public OrbitalElements.OrbitalElementsPieces orbit;
     public bool calculateFromElements;
 
 
-    private Vector3 movement;
+    private Vector3d movement;
     private  double angle;
-    private Vector3? previousPosition;
+    private Vector3d? previousPosition;
     private  double epoch;
-    private Vector3 relativePosition;
-    private Vector3 previousRelativePosition;
+    private Vector3d relativePosition;
+    private Vector3d previousRelativePosition;
     private OrbitalElements orbitalElements;
 
     private Action customInitialize;
@@ -52,7 +52,7 @@ public class CelestialBody
     public void init()
     {
         reset();
-        movement = new Vector3();
+        movement = new Vector3d();
         this.invMass = 1/mass;
 
         this.orbitalElements = new OrbitalElements();
@@ -63,29 +63,35 @@ public class CelestialBody
     public void reset()
     {
         this.angle = 0;
-        this.force = new Vector3();
-        movement = new Vector3();
+        this.force = new Vector3d();
+        movement = new Vector3d();
         this.previousPosition = null;
     }
 
     //if epoch start is not j2000, get epoch time from j2000 epoch time
     private double getEpochTime(double epochTime)
     {
+        //Debug.Log(epochTime);
+        //Debug.Log(this.epoch);
+
         if (this.epoch > 0)
         {
-            epochTime = epochTime - (this.epoch - ns.J2000); // bomb (original divided by 1000)
+            epochTime = epochTime - ((this.epoch - ns.J2000) / 1000); // bomb (original divided by 1000)
         }
+
+        //Debug.Log(epochTime);
+
         return epochTime;
     }
 
     public void setPositionFromDate(double epochTime, bool calculateVelocity)
     {
         epochTime = getEpochTime(epochTime);
-        this.position = this.isCentral ? new Vector3() : this.orbitalElements.getPositionFromElements(this.orbitalElements.calculateElements(epochTime));
-        this.relativePosition = new Vector3();
+        this.position = this.isCentral ? new Vector3d() : this.orbitalElements.getPositionFromElements(this.orbitalElements.calculateElements(epochTime));
+        this.relativePosition = new Vector3d();
         if (calculateVelocity)
         {
-            this.velocity = this.isCentral ? new Vector3() : this.orbitalElements.calculateVelocity(epochTime, this.relativeTo, this.calculateFromElements);
+            this.velocity = this.isCentral ? new Vector3d() : this.orbitalElements.calculateVelocity(epochTime, this.relativeTo, this.calculateFromElements);
         }
     }
 
@@ -96,8 +102,8 @@ public class CelestialBody
         {
             var eclPos = (this.position - (refBody.getPosition())).normalized;
             eclPos.z = 0;
-            var angleX = Vector3.Angle(eclPos, new Vector3(1, 0, 0)) * ns.DEG_TO_RAD;
-            var angleY = Vector3.Angle(eclPos, new Vector3(0, 1, 0)) * ns.DEG_TO_RAD;
+            var angleX = Vector3d.Angle(eclPos, new Vector3d(1, 0, 0)) * ns.DEG_TO_RAD;
+            var angleY = Vector3d.Angle(eclPos, new Vector3d(0, 1, 0)) * ns.DEG_TO_RAD;
             //console.log(angleX, angleY);
             var angle = angleX;
             double q = Math.PI/2;
@@ -147,9 +153,9 @@ public class CelestialBody
 			Calculates orbit line from orbital elements. By default, the orbital elements might not be osculating, i.e. they might account for perturbations. But the given orbit would thus be different slightly from the planet's path, as the velocity is calculated by considering that the orbit is elliptic.
 			*/
 
-    private List<Vector3> getOrbitVertices(bool isElliptic)
+    private List<Vector3d> getOrbitVertices(bool isElliptic)
     {
-        var points = new List<Vector3>();
+        var points = new List<Vector3d>();
 
         double startTime = getEpochTime(ns.U.currentTime);
         var elements = this.orbitalElements.calculateElements(startTime);
@@ -174,15 +180,15 @@ public class CelestialBody
         }
 
         var total = 0.0;
-        Vector3? lastPoint = null;
+        Vector3d? lastPoint = null;
         for (int i = 0; total < 360; i++)
         {
             OrbitalElements.OrbitalElementsPieces computed = this.orbitalElements.calculateElements(startTime + (incr * i), defaultOrbitalElements.orbitalElements);
             //if(this.name=='moon')console.log(startTime+(incr*i));
-            Vector3 point = this.orbitalElements.getPositionFromElements(computed);
+            Vector3d point = this.orbitalElements.getPositionFromElements(computed);
             if (lastPoint.HasValue)
             {
-                angle = Vector3.Angle(point, lastPoint.Value);
+                angle = Vector3d.Angle(point, lastPoint.Value);
                 //make sure we do not go over 360.5 
                 if (angle > 1.3 || ((angle + total) > 360.5))
                 {
@@ -194,7 +200,7 @@ public class CelestialBody
                         //when finishing the circle try to avoid going too far over 360 (break after first point going over 360)
                         if (total > 358)
                         {
-                            var angleToPrevious = Vector3.Angle(point, points[points.Count - 1]);
+                            var angleToPrevious = Vector3d.Angle(point, points[points.Count - 1]);
                             if ((angleToPrevious + total) > 360)
                             {
                                 points.Add(point);
@@ -204,7 +210,7 @@ public class CelestialBody
 
                         points.Add(point);
                     }
-                    total += Vector3.Angle(point, lastPoint.Value);
+                    total += Vector3d.Angle(point, lastPoint.Value);
                     lastPoint = point;
                     continue;
                 }
@@ -229,7 +235,7 @@ public class CelestialBody
             this.relativePosition = this.position - relativeToPos;
             movement = (this.relativePosition) - (this.previousRelativePosition);
             this.speed = movement.magnitude / deltaT;
-            this.angle += Vector3.Angle(this.relativePosition, this.previousRelativePosition) * ns.DEG_TO_RAD;
+            this.angle += Vector3d.Angle(this.relativePosition, this.previousRelativePosition) * ns.DEG_TO_RAD;
             this.previousRelativePosition = this.relativePosition;
 
             if (this.angle > ns.CIRCLE)
@@ -248,17 +254,17 @@ public class CelestialBody
             this.customAfterTick(ns.U.epochTime, ns.U.date, deltaT);
     }
 
-    public Vector3 calculatePosition(double t)
+    public Vector3d calculatePosition(double t)
     {
         return this.orbitalElements.calculatePosition(t);
     }
 
-    public Vector3 getPosition()
+    public Vector3d getPosition()
     {
         return this.position;
     }
 
-    public Vector3 getVelocity()
+    public Vector3d getVelocity()
     {
         return this.velocity;
     }

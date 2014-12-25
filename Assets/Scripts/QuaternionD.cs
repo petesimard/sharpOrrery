@@ -123,6 +123,11 @@ namespace UnityEngine
             return result;
         }
 
+        public static QuaternionD operator *(QuaternionD lhs, QuaternionD rhs)
+        {
+            return new QuaternionD(lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y, lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z, lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x, lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z);
+        }
+
         public override string ToString()
         {
             return String.Format("({0:F1}, {1:F1}, {2:F1}, {3:F1})", new object[]

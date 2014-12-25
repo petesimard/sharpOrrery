@@ -6,7 +6,7 @@ public static class Gravity
 {
     public static void calculateGForces(List<CelestialBody> bodies)
     {
-        var workVect = new Vector3();
+        var workVect = new Vector3d();
 
         for (int i = 0; i < bodies.Count; i++)
         {
@@ -32,15 +32,15 @@ public static class Gravity
 			Get the gravitational force in Newtons between two bodies (their distance in m, mass in kg)
 			*/
 
-    private static Vector3 getGForceBetween(double mass1, double mass2, Vector3 pos1, Vector3 pos2)
+    private static Vector3d getGForceBetween(double mass1, double mass2, Vector3d pos1, Vector3d pos2)
     {
-        var workVect = new Vector3();
+        var workVect = new Vector3d();
         workVect = (pos1) - (pos2); //vector is between positions of body A and body B
         var dstSquared = (double) workVect.sqrMagnitude;
         double massPrd = mass1*mass2;
         double Fg = ns.G*(massPrd/dstSquared); //in newtons (1 N = 1 kg*m / s^2)
         workVect.Normalize();
-        workVect *= (float) (Fg); //vector is now force of attraction in newtons/**/
+        workVect *= Fg; //vector is now force of attraction in newtons/**/
         return workVect;
     }
 }

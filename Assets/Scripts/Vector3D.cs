@@ -434,5 +434,13 @@ namespace UnityEngine
         {
             return Mathd.Acos(Mathd.Clamp(Vector3d.Dot(from.normalized, to.normalized), -1d, 1d));
         }
+
+        internal Vector3 GetVector3(double divider = 0)
+        {
+            if(divider == 0)
+                return new Vector3((float)x, (float)y, (float)z);
+
+            return new Vector3((float)(x / divider), (float)(y / divider), (float)(z / divider));
+        }
     }
 }

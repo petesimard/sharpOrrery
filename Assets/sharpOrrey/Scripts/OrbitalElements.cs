@@ -77,17 +77,17 @@ public class OrbitalElements
         this.name = name;
     }
 
-    public Vector3 calculateVelocity(double timeEpoch, CelestialBody relativeTo, bool isFromDelta)
+    public Vector3d calculateVelocity(double timeEpoch, CelestialBody relativeTo, bool isFromDelta)
     {
-        if (orbitalElements == null) return new Vector3(0, 0, 0);
+        if (orbitalElements == null) return new Vector3d(0, 0, 0);
 
-        var eclipticVelocity = new Vector3();
+        var eclipticVelocity = new Vector3d();
 
         if (isFromDelta)
         {
-            Vector3 pos1 = calculatePosition(timeEpoch);
-            Vector3 pos2 = calculatePosition(timeEpoch + 60);
-            eclipticVelocity = (pos2 - pos1)*(1.0f/60.0f);
+            Vector3d pos1 = calculatePosition(timeEpoch);
+            Vector3d pos2 = calculatePosition(timeEpoch + 60);
+            eclipticVelocity = (pos2 - pos1)*(1.0/60.0);
         }
         else
         {
@@ -104,7 +104,7 @@ public class OrbitalElements
             alpha = el.v < 0 ? (2*Math.PI) - alpha : alpha;
             double velocityAngle = el.v.Value + (alpha/2);
             //velocity vector in the plane of the orbit
-            Vector3 orbitalVelocity = new Vector3((float) Math.Cos(velocityAngle), (float) Math.Sin(velocityAngle), 0).normalized*(float) speed;
+            Vector3d orbitalVelocity = new Vector3d(Math.Cos(velocityAngle), Math.Sin(velocityAngle), 0).normalized*speed;
             OrbitalElementsPieces velocityEls = el.Copy();
             velocityEls.pos = orbitalVelocity;
             velocityEls.v = 0;
@@ -116,13 +116,13 @@ public class OrbitalElements
         return eclipticVelocity;
     }
 
-    public Vector3 calculatePosition(double timeEpoch)
+    public Vector3d calculatePosition(double timeEpoch)
     {
         if (orbitalElements == null)
-            return new Vector3(0, 0, 0);
+            return new Vector3d(0, 0, 0);
 
         OrbitalElementsPieces computed = calculateElements(timeEpoch);
-        Vector3 pos = getPositionFromElements(computed);
+        Vector3d pos = getPositionFromElements(computed);
         return pos;
     }
 
@@ -219,7 +219,7 @@ public class OrbitalElements
                 CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("E"), computed, T);
                 CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("M"), computed, T);
                 CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("r"), computed, T);
-                CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("t"), computed, T);
+                //CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("t"), computed, T);
                 CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("v"), computed, T);
                 CalculateVariation(orbitalElements, orbitalElements.GetType().GetField("w"), computed, T);
 /*
@@ -263,8 +263,8 @@ public class OrbitalElements
         computed.M = computed.M%ns.CIRCLE;
 
         //in the plane of the orbit
-        computed.pos = new Vector3((float) (computed.a*(Math.Cos(computed.E.Value) - computed.e.Value)),
-            (float) (computed.a.Value*(Math.Sqrt(1 - (computed.e.Value*computed.e.Value)))*Math.Sin(computed.E.Value)));
+        computed.pos = new Vector3d((computed.a*(Math.Cos(computed.E.Value) - computed.e.Value)).Value,
+            (computed.a.Value*(Math.Sqrt(1 - (computed.e.Value*computed.e.Value)))*Math.Sin(computed.E.Value)));
 
         computed.r = computed.pos.magnitude;
         computed.v = Math.Atan2(computed.pos.y, computed.pos.x);
@@ -276,7 +276,7 @@ public class OrbitalElements
                 computed.tilt = -relativeTo.tilt.Value*ns.DEG_TO_RAD;
             }
         }
-        ;
+        
         return computed;
     }
 
@@ -318,17 +318,28 @@ public class OrbitalElements
         }
     }
 
-    public Vector3 getPositionFromElements(OrbitalElementsPieces computed)
+    public Vector3d getPositionFromElements(OrbitalElementsPieces computed)
     {
-        if (computed == null) return new Vector3(0, 0, 0);
+        			/*	if(!computed) return new THREE.Vector3(0,0,0);
 
-        var a1 = new Vector3((float) computed.tilt, 0, (float) computed.o.Value);
-        Quaternion q1 = Quaternion.Euler(a1);
-        var a2 = new Vector3((float) computed.i.Value, 0, (float) computed.w.Value);
-        Quaternion q2 = Quaternion.Euler(a2);
+				var a1 = new THREE.Euler(computed.tilt || 0, 0, computed.o, 'XYZ');
+				var q1 = new THREE.Quaternion().setFromEuler(a1);
+				var a2 = new THREE.Euler(computed.i, 0, computed.w, 'XYZ');
+				var q2 = new THREE.Quaternion().setFromEuler(a2);
 
-        Quaternion planeQuat = q1*q2;
-        Vector3 pos = planeQuat*computed.pos; // bomb (should it apply in place?)
+				var planeQuat = new THREE.Quaternion().multiplyQuaternions(q1, q2);
+				computed.pos.applyQuaternion(planeQuat);
+				return computed.pos;
+*/
+        if (computed == null) return new Vector3d(0, 0, 0);
+
+        var a1 = new Vector3d(computed.tilt, 0, computed.o.Value);
+        QuaternionD q1 = QuaternionD.EulerRad(a1);
+        var a2 = new Vector3d(computed.i.Value, 0, computed.w.Value);
+        QuaternionD q2 = QuaternionD.EulerRad(a2);
+
+        QuaternionD planeQuat = q1*q2;
+        Vector3d pos = planeQuat*computed.pos; // bomb (should it apply in place?)
         return pos;
     }
 
@@ -366,7 +377,7 @@ public class OrbitalElements
         public double? l; // 	Mean Longitude
         public double? lp; //	longitude of periapsis
         public double? o; // 	Longitude of Ascending Node (Î©)
-        public Vector3 pos;
+        public Vector3d pos;
         public double? r; //	distance du centre
         public CelestialBody relativeTo;
         public double? t; // Time maybe??

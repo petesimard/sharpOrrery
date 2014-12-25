@@ -47,6 +47,7 @@ public class ScenarioLoader : MonoBehaviour {
                 cy = new OrbitalElements.OrbitalElementsPieces() { a = 0.00000037 * ns.AU, e = 0.00001906, i = -0.00594749, l = 149472.67411175, lp = 0.16047689, o = -0.12534081 }
 			}             
         };
+
         celestialBodyDefinitions[body.title] = body;
 
 /*

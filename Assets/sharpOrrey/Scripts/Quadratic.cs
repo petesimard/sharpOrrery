@@ -34,10 +34,10 @@ public class Quadratic : MoveAlgorithm
             }
             else
             {
-                n[i].accel.Add(b.force*(float) b.invMass);
+                n[i].accel.Add(b.force*b.invMass);
 
                 n[i].pos.Add(b.position);
-                n[i].pos.Add(b.position + (b.getVelocity()*(float) halfDeltaT) + (n[i].accel[0]*(float) onehalf_halfDeltaTSq));
+                n[i].pos.Add(b.position + (b.getVelocity()*halfDeltaT) + (n[i].accel[0]*onehalf_halfDeltaTSq));
 
                 b.position = n[i].pos[1];
             }
@@ -59,12 +59,12 @@ public class Quadratic : MoveAlgorithm
             }
             else
             {
-                n[i].accel.Add(b.force*(float) b.invMass);
+                n[i].accel.Add(b.force* b.invMass);
 
                 //pos1 = pos0 + (vel0 * deltat) + (accel05 * 0.5 * Math.pow(deltaT, 2))
                 n[i].pos.Add(
-                    n[i].pos[0] + (b.getVelocity()*(float) deltaT)
-                    + (n[i].accel[1]*(float) onehalf_deltaTSq));
+                    n[i].pos[0] + (b.getVelocity()* deltaT)
+                    + (n[i].accel[1]*onehalf_deltaTSq));
 
                 b.position = (n[i].pos[2]);
             }
@@ -81,15 +81,15 @@ public class Quadratic : MoveAlgorithm
                 continue;
             if (!b.calculateFromElements)
             {
-                n[i].accel.Add(b.force*(float) b.invMass);
+                n[i].accel.Add(b.force*b.invMass);
             }
         }
 
         //perform the actual integration
-        var c1 = new Vector3();
-        var c2 = new Vector3();
-        var deltaV = new Vector3();
-        var deltaP = new Vector3();
+        var c1 = new Vector3d();
+        var c2 = new Vector3d();
+        var deltaV = new Vector3d();
+        var deltaP = new Vector3d();
 
         for (int i = 0; i < bodies.Count; i++)
         {
@@ -100,24 +100,24 @@ public class Quadratic : MoveAlgorithm
                 c1 = (n[i].accel[0]*-3)
                      - n[i].accel[2]
                      + (n[i].accel[1]*4)
-                     *(1f/(float) deltaT);
+                     *(1/deltaT);
 
                 c2 = n[i].accel[0]
                      + (n[i].accel[2])
                      - (n[i].accel[1]*2)
                      *2
-                     *(float) inverted_deltaTSq;
+                     * inverted_deltaTSq;
 
                 deltaV = n[i].accel[0]
-                         *(float) deltaT
-                         + (c1*(float) (onehalf_deltaTSq))
-                         + (c2*(float) (onethird_deltaT3rd));
+                         *deltaT
+                         + (c1*(onehalf_deltaTSq))
+                         + (c2*(onethird_deltaT3rd));
 
                 deltaP = b.getVelocity()
-                         *(float) deltaT
-                         + (n[i].accel[0]*(float) onehalf_deltaTSq)
-                         + (c1*(float) (onesixth_deltaT3rd))
-                         + (c2*(float) (onetwelvth_deltaT4th));
+                         * deltaT
+                         + (n[i].accel[0]* onehalf_deltaTSq)
+                         + (c1* (onesixth_deltaT3rd))
+                         + (c2* (onetwelvth_deltaT4th));
 
                 bodies[i].position = (n[i].pos[0]) + (deltaP);
                 bodies[i].velocity += (deltaV);
@@ -129,7 +129,7 @@ public class Quadratic : MoveAlgorithm
 
     private class BodyCalcContainer
     {
-        public readonly List<Vector3> accel = new List<Vector3>();
-        public readonly List<Vector3> pos = new List<Vector3>();
+        public readonly List<Vector3d> accel = new List<Vector3d>();
+        public readonly List<Vector3d> pos = new List<Vector3d>();
     }
 }

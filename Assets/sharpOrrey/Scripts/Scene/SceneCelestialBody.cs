@@ -4,7 +4,7 @@ using System.Collections;
 public class SceneCelestialBody : MonoBehaviour
 {
     private CelestialBody celestialBody;
-    private float divider = 1000000000;
+    private double divider = 1000000000;
 
 	// Use this for initialization
 	void Start () {
@@ -20,6 +20,6 @@ public class SceneCelestialBody : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-	    transform.position = celestialBody.getPosition() / divider;
+	    transform.position = celestialBody.getPosition().GetVector3(divider);
 	}
 }
