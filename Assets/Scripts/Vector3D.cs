@@ -1,920 +1,438 @@
 ﻿using System;
-using UnityEngine;
+using System.Runtime.CompilerServices;
 
-namespace FarseerPhysics
+namespace UnityEngine
 {
-    public struct Vector3D : IEquatable<Vector3D>
+    public struct Vector3d
     {
-        private static Vector3D _zero = new Vector3D();
-        private static Vector3D _one = new Vector3D(1f, 1f, 1f);
-        private static Vector3D _unitX = new Vector3D(1f, 0.0f, 0.0f);
-        private static Vector3D _unitY = new Vector3D(0.0f, 1f, 0.0f);
-        private static Vector3D _unitZ = new Vector3D(0.0f, 0.0f, 1f);
-        private static Vector3D _up = new Vector3D(0.0f, 1f, 0.0f);
-        private static Vector3D _down = new Vector3D(0.0f, -1f, 0.0f);
-        private static Vector3D _right = new Vector3D(1f, 0.0f, 0.0f);
-        private static Vector3D _left = new Vector3D(-1f, 0.0f, 0.0f);
-        private static Vector3D _forward = new Vector3D(0.0f, 0.0f, -1f);
-        private static Vector3D _backward = new Vector3D(0.0f, 0.0f, 1f);
-        /// <summary>
-        /// Gets or sets the x-component of the vector.
-        /// </summary>
-        public double X;
-        /// <summary>
-        /// Gets or sets the y-component of the vector.
-        /// </summary>
-        public double Y;
-        /// <summary>
-        /// Gets or sets the z-component of the vector.
-        /// </summary>
-        public double Z;
+        public const float kEpsilon = 1E-05f;
+        public double x;
+        public double y;
+        public double z;
 
-        public Vector3 ToVector3()
-        {
-            return new Vector3((float)X, (float)Y, (float)Z);
-        }
-
-        /// <summary>
-        /// Returns a Vector3D with all of its components set to zero.
-        /// </summary>
-        public static Vector3D Zero
+        public double this[int index]
         {
             get
             {
-                return Vector3D._zero;
+                switch (index)
+                {
+                    case 0:
+                        return this.x;
+                    case 1:
+                        return this.y;
+                    case 2:
+                        return this.z;
+                    default:
+                        throw new IndexOutOfRangeException("Invalid index!");
+                }
+            }
+            set
+            {
+                switch (index)
+                {
+                    case 0:
+                        this.x = value;
+                        break;
+                    case 1:
+                        this.y = value;
+                        break;
+                    case 2:
+                        this.z = value;
+                        break;
+                    default:
+                        throw new IndexOutOfRangeException("Invalid Vector3d index!");
+                }
             }
         }
 
-        /// <summary>
-        /// Returns a Vector3D with ones in all of its components.
-        /// </summary>
-        public static Vector3D One
+        public Vector3d normalized
         {
             get
             {
-                return Vector3D._one;
+                return Vector3d.Normalize(this);
             }
         }
 
-        /// <summary>
-        /// Returns the x unit Vector3D (1, 0, 0).
-        /// </summary>
-        public static Vector3D UnitX
+        public double magnitude
         {
             get
             {
-                return Vector3D._unitX;
+                return Math.Sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
             }
         }
 
-        /// <summary>
-        /// Returns the y unit Vector3D (0, 1, 0).
-        /// </summary>
-        public static Vector3D UnitY
+        public double sqrMagnitude
         {
             get
             {
-                return Vector3D._unitY;
+                return this.x * this.x + this.y * this.y + this.z * this.z;
             }
         }
 
-        /// <summary>
-        /// Returns the z unit Vector3D (0, 0, 1).
-        /// </summary>
-        public static Vector3D UnitZ
+        public static Vector3d zero
         {
             get
             {
-                return Vector3D._unitZ;
+                return new Vector3d(0d, 0d, 0d);
             }
         }
 
-        /// <summary>
-        /// Returns a unit vector designating up (0, 1, 0).
-        /// </summary>
-        public static Vector3D Up
+        public static Vector3d one
         {
             get
             {
-                return Vector3D._up;
+                return new Vector3d(1d, 1d, 1d);
             }
         }
 
-        /// <summary>
-        /// Returns a unit Vector3D designating down (0, −1, 0).
-        /// </summary>
-        public static Vector3D Down
+        public static Vector3d forward
         {
             get
             {
-                return Vector3D._down;
+                return new Vector3d(0d, 0d, 1d);
             }
         }
 
-        /// <summary>
-        /// Returns a unit Vector3D pointing to the right (1, 0, 0).
-        /// </summary>
-        public static Vector3D Right
+        public static Vector3d back
         {
             get
             {
-                return Vector3D._right;
+                return new Vector3d(0d, 0d, -1d);
             }
         }
 
-        /// <summary>
-        /// Returns a unit Vector3D designating left (−1, 0, 0).
-        /// </summary>
-        public static Vector3D Left
+        public static Vector3d up
         {
             get
             {
-                return Vector3D._left;
+                return new Vector3d(0d, 1d, 0d);
             }
         }
 
-        /// <summary>
-        /// Returns a unit Vector3D designating forward in a right-handed coordinate system(0, 0, −1).
-        /// </summary>
-        public static Vector3D Forward
+        public static Vector3d down
         {
             get
             {
-                return Vector3D._forward;
+                return new Vector3d(0d, -1d, 0d);
             }
         }
 
-        /// <summary>
-        /// Returns a unit Vector3D designating backward in a right-handed coordinate system (0, 0, 1).
-        /// </summary>
-        public static Vector3D Backward
+        public static Vector3d left
         {
             get
             {
-                return Vector3D._backward;
+                return new Vector3d(-1d, 0d, 0d);
             }
         }
 
-        static Vector3D()
+        public static Vector3d right
         {
+            get
+            {
+                return new Vector3d(1d, 0d, 0d);
+            }
         }
 
-        /// <summary>
-        /// Initializes a new instance of Vector3D.
-        /// </summary>
-        /// <param name="x">Initial value for the x-component of the vector.</param><param name="y">Initial value for the y-component of the vector.</param><param name="z">Initial value for the z-component of the vector.</param>
-        public Vector3D(double x, double y, double z)
+        [Obsolete("Use Vector3d.forward instead.")]
+        public static Vector3d fwd
         {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
+            get
+            {
+                return new Vector3d(0d, 0d, 1d);
+            }
         }
 
-        /// <summary>
-        /// Creates a new instance of Vector3D.
-        /// </summary>
-        /// <param name="value">Value to initialize each component to.</param>
-        public Vector3D(double value)
+        public Vector3d(double x, double y, double z)
         {
-            this.X = this.Y = this.Z = value;
+            this.x = x;
+            this.y = y;
+            this.z = z;
         }
 
-
-        /// <summary>
-        /// Returns a vector pointing in the opposite direction.
-        /// </summary>
-        /// <param name="value">Source vector.</param>
-        public static Vector3D operator -(Vector3D value)
+        public Vector3d(float x, float y, float z)
         {
-            Vector3D Vector3D;
-            Vector3D.X = -value.X;
-            Vector3D.Y = -value.Y;
-            Vector3D.Z = -value.Z;
-            return Vector3D;
+            this.x = (double)x;
+            this.y = (double)y;
+            this.z = (double)z;
         }
 
-        /// <summary>
-        /// Tests vectors for equality.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static bool operator ==(Vector3D value1, Vector3D value2)
+        public Vector3d(Vector3 v3)
         {
-            if (value1.X == value2.X && value1.Y == value2.Y)
-                return value1.Z == value2.Z;
+            this.x = (double)v3.x;
+            this.y = (double)v3.y;
+            this.z = (double)v3.z;
+        }
+
+        public Vector3d(double x, double y)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = 0d;
+        }
+
+        public static Vector3d operator +(Vector3d a, Vector3d b)
+        {
+            return new Vector3d(a.x + b.x, a.y + b.y, a.z + b.z);
+        }
+
+        public static Vector3d operator -(Vector3d a, Vector3d b)
+        {
+            return new Vector3d(a.x - b.x, a.y - b.y, a.z - b.z);
+        }
+
+        public static Vector3d operator -(Vector3d a)
+        {
+            return new Vector3d(-a.x, -a.y, -a.z);
+        }
+
+        public static Vector3d operator *(Vector3d a, double d)
+        {
+            return new Vector3d(a.x * d, a.y * d, a.z * d);
+        }
+
+        public static Vector3d operator *(double d, Vector3d a)
+        {
+            return new Vector3d(a.x * d, a.y * d, a.z * d);
+        }
+
+        public static Vector3d operator /(Vector3d a, double d)
+        {
+            return new Vector3d(a.x / d, a.y / d, a.z / d);
+        }
+
+        public static bool operator ==(Vector3d lhs, Vector3d rhs)
+        {
+            return (double)Vector3d.SqrMagnitude(lhs - rhs) < 0.0 / 1.0;
+        }
+
+        public static bool operator !=(Vector3d lhs, Vector3d rhs)
+        {
+            return (double)Vector3d.SqrMagnitude(lhs - rhs) >= 0.0 / 1.0;
+        }
+
+        public static explicit operator Vector3(Vector3d vector3d)
+        {
+            return new Vector3((float)vector3d.x, (float)vector3d.y, (float)vector3d.z);
+        }
+
+        public static Vector3d Lerp(Vector3d from, Vector3d to, double t)
+        {
+            t = Mathd.Clamp01(t);
+            return new Vector3d(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, from.z + (to.z - from.z) * t);
+        }
+
+        public static Vector3d Slerp(Vector3d from, Vector3d to, double t)
+        {
+            Vector3 v3 = Vector3.Slerp((Vector3)from, (Vector3)to, (float)t);
+            return new Vector3d(v3);
+        }
+
+        public static void OrthoNormalize(ref Vector3d normal, ref Vector3d tangent)
+        {
+            Vector3 v3normal = new Vector3();
+            Vector3 v3tangent = new Vector3();
+            v3normal = (Vector3)normal;
+            v3tangent = (Vector3)tangent;
+            Vector3.OrthoNormalize(ref v3normal, ref v3tangent);
+            normal = new Vector3d(v3normal);
+            tangent = new Vector3d(v3tangent);
+        }
+
+        public static void OrthoNormalize(ref Vector3d normal, ref Vector3d tangent, ref Vector3d binormal)
+        {
+            Vector3 v3normal = new Vector3();
+            Vector3 v3tangent = new Vector3();
+            Vector3 v3binormal = new Vector3();
+            v3normal = (Vector3)normal;
+            v3tangent = (Vector3)tangent;
+            v3binormal = (Vector3)binormal;
+            Vector3.OrthoNormalize(ref v3normal, ref v3tangent, ref v3binormal);
+            normal = new Vector3d(v3normal);
+            tangent = new Vector3d(v3tangent);
+            binormal = new Vector3d(v3binormal);
+        }
+
+        public static Vector3d MoveTowards(Vector3d current, Vector3d target, double maxDistanceDelta)
+        {
+            Vector3d vector3 = target - current;
+            double magnitude = vector3.magnitude;
+            if (magnitude <= maxDistanceDelta || magnitude == 0.0d)
+                return target;
             else
-                return false;
+                return current + vector3 / magnitude * maxDistanceDelta;
         }
 
-        /// <summary>
-        /// Tests vectors for inequality.
-        /// </summary>
-        /// <param name="value1">Vector to compare.</param><param name="value2">Vector to compare.</param>
-        public static bool operator !=(Vector3D value1, Vector3D value2)
+        public static Vector3d RotateTowards(Vector3d current, Vector3d target, double maxRadiansDelta, double maxMagnitudeDelta)
         {
-            if (value1.X == value2.X && value1.Y == value2.Y)
-                return value1.Z != value2.Z;
-            else
-                return true;
+            Vector3 v3 = Vector3.RotateTowards((Vector3)current, (Vector3)target, (float)maxRadiansDelta, (float)maxMagnitudeDelta);
+            return new Vector3d(v3);
         }
 
-        /// <summary>
-        /// Adds two vectors.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D operator +(Vector3D value1, Vector3D value2)
+        public static Vector3d SmoothDamp(Vector3d current, Vector3d target, ref Vector3d currentVelocity, double smoothTime, double maxSpeed)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X + value2.X;
-            Vector3D.Y = value1.Y + value2.Y;
-            Vector3D.Z = value1.Z + value2.Z;
-            return Vector3D;
+            double deltaTime = (double)Time.deltaTime;
+            return Vector3d.SmoothDamp(current, target, ref currentVelocity, smoothTime, maxSpeed, deltaTime);
         }
 
-        /// <summary>
-        /// Subtracts a vector from a vector.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D operator -(Vector3D value1, Vector3D value2)
+        public static Vector3d SmoothDamp(Vector3d current, Vector3d target, ref Vector3d currentVelocity, double smoothTime)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X - value2.X;
-            Vector3D.Y = value1.Y - value2.Y;
-            Vector3D.Z = value1.Z - value2.Z;
-            return Vector3D;
+            double deltaTime = (double)Time.deltaTime;
+            double maxSpeed = double.PositiveInfinity;
+            return Vector3d.SmoothDamp(current, target, ref currentVelocity, smoothTime, maxSpeed, deltaTime);
         }
 
-        /// <summary>
-        /// Multiplies the components of two vectors by each other.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D operator *(Vector3D value1, Vector3D value2)
+        public static Vector3d SmoothDamp(Vector3d current, Vector3d target, ref Vector3d currentVelocity, double smoothTime, double maxSpeed, double deltaTime)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X * value2.X;
-            Vector3D.Y = value1.Y * value2.Y;
-            Vector3D.Z = value1.Z * value2.Z;
-            return Vector3D;
+            smoothTime = Mathd.Max(0.0001d, smoothTime);
+            double num1 = 2d / smoothTime;
+            double num2 = num1 * deltaTime;
+            double num3 = (1.0d / (1.0d + num2 + 0.479999989271164d * num2 * num2 + 0.234999999403954d * num2 * num2 * num2));
+            Vector3d vector = current - target;
+            Vector3d vector3_1 = target;
+            double maxLength = maxSpeed * smoothTime;
+            Vector3d vector3_2 = Vector3d.ClampMagnitude(vector, maxLength);
+            target = current - vector3_2;
+            Vector3d vector3_3 = (currentVelocity + num1 * vector3_2) * deltaTime;
+            currentVelocity = (currentVelocity - num1 * vector3_3) * num3;
+            Vector3d vector3_4 = target + (vector3_2 + vector3_3) * num3;
+            if (Vector3d.Dot(vector3_1 - current, vector3_4 - vector3_1) > 0.0)
+            {
+                vector3_4 = vector3_1;
+                currentVelocity = (vector3_4 - vector3_1) / deltaTime;
+            }
+            return vector3_4;
         }
 
-        /// <summary>
-        /// Multiplies a vector by a scalar value.
-        /// </summary>
-        /// <param name="value">Source vector.</param><param name="scaleFactor">Scalar value.</param>
-        public static Vector3D operator *(Vector3D value, double scaleFactor)
+        public void Set(double new_x, double new_y, double new_z)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value.X * scaleFactor;
-            Vector3D.Y = value.Y * scaleFactor;
-            Vector3D.Z = value.Z * scaleFactor;
-            return Vector3D;
+            this.x = new_x;
+            this.y = new_y;
+            this.z = new_z;
         }
 
-        /// <summary>
-        /// Multiplies a vector by a scalar value.
-        /// </summary>
-        /// <param name="scaleFactor">Scalar value.</param><param name="value">Source vector.</param>
-        public static Vector3D operator *(double scaleFactor, Vector3D value)
+        public static Vector3d Scale(Vector3d a, Vector3d b)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value.X * scaleFactor;
-            Vector3D.Y = value.Y * scaleFactor;
-            Vector3D.Z = value.Z * scaleFactor;
-            return Vector3D;
+            return new Vector3d(a.x * b.x, a.y * b.y, a.z * b.z);
         }
 
-        /// <summary>
-        /// Divides the components of a vector by the components of another vector.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Divisor vector.</param>
-        public static Vector3D operator /(Vector3D value1, Vector3D value2)
+        public void Scale(Vector3d scale)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X / value2.X;
-            Vector3D.Y = value1.Y / value2.Y;
-            Vector3D.Z = value1.Z / value2.Z;
-            return Vector3D;
+            this.x *= scale.x;
+            this.y *= scale.y;
+            this.z *= scale.z;
         }
 
-        /// <summary>
-        /// Divides a vector by a scalar value.
-        /// </summary>
-        /// <param name="value">Source vector.</param><param name="divider">The divisor.</param>
-        public static Vector3D operator /(Vector3D value, double divider)
+        public static Vector3d Cross(Vector3d lhs, Vector3d rhs)
         {
-            double num = 1f / divider;
-            Vector3D Vector3D;
-            Vector3D.X = value.X * num;
-            Vector3D.Y = value.Y * num;
-            Vector3D.Z = value.Z * num;
-            return Vector3D;
+            return new Vector3d(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x);
         }
 
-        /// <summary>
-        /// Determines whether the specified Object is equal to the Vector3D.
-        /// </summary>
-        /// <param name="other">The Vector3D to compare with the current Vector3D.</param>
-        public bool Equals(Vector3D other)
-        {
-            if (this.X == other.X && this.Y == other.Y)
-                return this.Z == other.Z;
-            else
-                return false;
-        }
-
-        /// <summary>
-        /// Returns a value that indicates whether the current instance is equal to a specified object.
-        /// </summary>
-        /// <param name="obj">Object to make the comparison with.</param>
-        public override bool Equals(object obj)
-        {
-            bool flag = false;
-            if (obj is Vector3D)
-                flag = this.Equals((Vector3D)obj);
-            return flag;
-        }
-
-        /// <summary>
-        /// Gets the hash code of the vector object.
-        /// </summary>
         public override int GetHashCode()
         {
-            return this.X.GetHashCode() + this.Y.GetHashCode() + this.Z.GetHashCode();
+            return this.x.GetHashCode() ^ this.y.GetHashCode() << 2 ^ this.z.GetHashCode() >> 2;
         }
 
-        /// <summary>
-        /// Calculates the length of the vector.
-        /// </summary>
-        public double Length()
+        public override bool Equals(object other)
         {
-            return Math.Sqrt(this.X * this.X + this.Y * this.Y + this.Z * this.Z);
+            if (!(other is Vector3d))
+                return false;
+            Vector3d vector3d = (Vector3d)other;
+            if (this.x.Equals(vector3d.x) && this.y.Equals(vector3d.y))
+                return this.z.Equals(vector3d.z);
+            else
+                return false;
         }
 
-        /// <summary>
-        /// Calculates the length of the vector squared.
-        /// </summary>
-        public double LengthSquared()
+        public static Vector3d Reflect(Vector3d inDirection, Vector3d inNormal)
         {
-            return this.X * this.X + this.Y * this.Y + this.Z * this.Z;
+            return -2d * Vector3d.Dot(inNormal, inDirection) * inNormal + inDirection;
         }
 
-        /// <summary>
-        /// Calculates the distance between two vectors.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static double Distance(Vector3D value1, Vector3D value2)
+        public static Vector3d Normalize(Vector3d value)
         {
-            double num1 = value1.X - value2.X;
-            double num2 = value1.Y - value2.Y;
-            double num3 = value1.Z - value2.Z;
-            return Math.Sqrt(num1 * num1 + num2 * num2 + num3 * num3);
+            double num = Vector3d.Magnitude(value);
+            if (num > 9.99999974737875E-06)
+                return value / num;
+            else
+                return Vector3d.zero;
         }
 
-        /// <summary>
-        /// Calculates the distance between two vectors.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="result">[OutAttribute] The distance between the vectors.</param>
-        public static void Distance(ref Vector3D value1, ref Vector3D value2, out double result)
-        {
-            double num1 = value1.X - value2.X;
-            double num2 = value1.Y - value2.Y;
-            double num3 = value1.Z - value2.Z;
-            double num4 = num1 * num1 + num2 * num2 + num3 * num3;
-            result = Math.Sqrt(num4);
-        }
-
-        /// <summary>
-        /// Calculates the distance between two vectors squared.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static double DistanceSquared(Vector3D value1, Vector3D value2)
-        {
-            double num1 = value1.X - value2.X;
-            double num2 = value1.Y - value2.Y;
-            double num3 = value1.Z - value2.Z;
-            return num1 * num1 + num2 * num2 + num3 * num3;
-        }
-
-        /// <summary>
-        /// Calculates the distance between two vectors squared.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="result">[OutAttribute] The distance between the two vectors squared.</param>
-        public static void DistanceSquared(ref Vector3D value1, ref Vector3D value2, out double result)
-        {
-            double num1 = value1.X - value2.X;
-            double num2 = value1.Y - value2.Y;
-            double num3 = value1.Z - value2.Z;
-            result = num1 * num1 + num2 * num2 + num3 * num3;
-        }
-
-        /// <summary>
-        /// Calculates the dot product of two vectors. If the two vectors are unit vectors, the dot product returns a doubleing point value between -1 and 1 that can be used to determine some properties of the angle between two vectors. For example, it can show whether the vectors are orthogonal, parallel, or have an acute or obtuse angle between them.
-        /// </summary>
-        /// <param name="vector1">Source vector.</param><param name="Vector2D">Source vector.</param>
-        public static double Dot(Vector3D vector1, Vector3D Vector2D)
-        {
-            return vector1.X * Vector2D.X + vector1.Y * Vector2D.Y + vector1.Z * Vector2D.Z;
-        }
-
-        /// <summary>
-        /// Calculates the dot product of two vectors and writes the result to a user-specified variable. If the two vectors are unit vectors, the dot product returns a doubleing point value between -1 and 1 that can be used to determine some properties of the angle between two vectors. For example, it can show whether the vectors are orthogonal, parallel, or have an acute or obtuse angle between them.
-        /// </summary>
-        /// <param name="vector1">Source vector.</param><param name="Vector2D">Source vector.</param><param name="result">[OutAttribute] The dot product of the two vectors.</param>
-        public static void Dot(ref Vector3D vector1, ref Vector3D Vector2D, out double result)
-        {
-            result = vector1.X * Vector2D.X + vector1.Y * Vector2D.Y + vector1.Z * Vector2D.Z;
-        }
-
-        /// <summary>
-        /// Turns the current vector into a unit vector. The result is a vector one unit in length pointing in the same direction as the original vector.
-        /// </summary>
         public void Normalize()
         {
-            double num = 1f / Math.Sqrt(this.X * this.X + this.Y * this.Y + this.Z * this.Z);
-            this.X *= num;
-            this.Y *= num;
-            this.Z *= num;
+            double num = Vector3d.Magnitude(this);
+            if (num > 9.99999974737875E-06)
+                this = this / num;
+            else
+                this = Vector3d.zero;
+        }
+        // TODO : fix formatting
+        public override string ToString()
+        {
+            return "(" + this.x + " - " + this.y + " - " + this.z + ")";
         }
 
-        /// <summary>
-        /// Creates a unit vector from the specified vector. The result is a vector one unit in length pointing in the same direction as the original vector.
-        /// </summary>
-        /// <param name="value">The source Vector3D.</param>
-        public static Vector3D Normalize(Vector3D value)
+        public static double Dot(Vector3d lhs, Vector3d rhs)
         {
-            double num = 1f / Math.Sqrt(value.X * value.X + value.Y * value.Y + value.Z * value.Z);
-            Vector3D Vector3D;
-            Vector3D.X = value.X * num;
-            Vector3D.Y = value.Y * num;
-            Vector3D.Z = value.Z * num;
-            return Vector3D;
+            return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
         }
 
-        /// <summary>
-        /// Creates a unit vector from the specified vector, writing the result to a user-specified variable. The result is a vector one unit in length pointing in the same direction as the original vector.
-        /// </summary>
-        /// <param name="value">Source vector.</param><param name="result">[OutAttribute] The normalized vector.</param>
-        public static void Normalize(ref Vector3D value, out Vector3D result)
+        public static Vector3d Project(Vector3d vector, Vector3d onNormal)
         {
-            double num = 1f / Math.Sqrt(value.X * value.X + value.Y * value.Y + value.Z * value.Z);
-            result.X = value.X * num;
-            result.Y = value.Y * num;
-            result.Z = value.Z * num;
+            double num = Vector3d.Dot(onNormal, onNormal);
+            if (num < 1.40129846432482E-45d)
+                return Vector3d.zero;
+            else
+                return onNormal * Vector3d.Dot(vector, onNormal) / num;
         }
 
-        /// <summary>
-        /// Calculates the cross product of two vectors.
-        /// </summary>
-        /// <param name="vector1">Source vector.</param><param name="Vector2D">Source vector.</param>
-        public static Vector3D Cross(Vector3D vector1, Vector3D Vector2D)
+        public static Vector3d Exclude(Vector3d excludeThis, Vector3d fromThat)
         {
-            Vector3D Vector3D;
-            Vector3D.X = vector1.Y * Vector2D.Z - vector1.Z * Vector2D.Y;
-            Vector3D.Y = vector1.Z * Vector2D.X - vector1.X * Vector2D.Z;
-            Vector3D.Z = vector1.X * Vector2D.Y - vector1.Y * Vector2D.X;
-            return Vector3D;
+            return fromThat - Vector3d.Project(fromThat, excludeThis);
         }
 
-        /// <summary>
-        /// Calculates the cross product of two vectors.
-        /// </summary>
-        /// <param name="vector1">Source vector.</param><param name="Vector2D">Source vector.</param><param name="result">[OutAttribute] The cross product of the vectors.</param>
-        public static void Cross(ref Vector3D vector1, ref Vector3D Vector2D, out Vector3D result)
+        public static double Angle(Vector3d from, Vector3d to)
         {
-            double num1 = vector1.Y * Vector2D.Z - vector1.Z * Vector2D.Y;
-            double num2 = vector1.Z * Vector2D.X - vector1.X * Vector2D.Z;
-            double num3 = vector1.X * Vector2D.Y - vector1.Y * Vector2D.X;
-            result.X = num1;
-            result.Y = num2;
-            result.Z = num3;
+            return Mathd.Acos(Mathd.Clamp(Vector3d.Dot(from.normalized, to.normalized), -1d, 1d)) * 57.29578d;
         }
 
-        /// <summary>
-        /// Returns the reflection of a vector off a surface that has the specified normal.  Reference page contains code sample.
-        /// </summary>
-        /// <param name="vector">Source vector.</param><param name="normal">Normal of the surface.</param>
-        public static Vector3D Reflect(Vector3D vector, Vector3D normal)
+        public static double Distance(Vector3d a, Vector3d b)
         {
-            double num = vector.X * normal.X + vector.Y * normal.Y + vector.Z * normal.Z;
-            Vector3D Vector3D;
-            Vector3D.X = vector.X - 2f * num * normal.X;
-            Vector3D.Y = vector.Y - 2f * num * normal.Y;
-            Vector3D.Z = vector.Z - 2f * num * normal.Z;
-            return Vector3D;
+            Vector3d vector3d = new Vector3d(a.x - b.x, a.y - b.y, a.z - b.z);
+            return Math.Sqrt(vector3d.x * vector3d.x + vector3d.y * vector3d.y + vector3d.z * vector3d.z);
         }
 
-        /// <summary>
-        /// Returns the reflection of a vector off a surface that has the specified normal.  Reference page contains code sample.
-        /// </summary>
-        /// <param name="vector">Source vector.</param><param name="normal">Normal of the surface.</param><param name="result">[OutAttribute] The reflected vector.</param>
-        public static void Reflect(ref Vector3D vector, ref Vector3D normal, out Vector3D result)
+        public static Vector3d ClampMagnitude(Vector3d vector, double maxLength)
         {
-            double num = vector.X * normal.X + vector.Y * normal.Y + vector.Z * normal.Z;
-            result.X = vector.X - 2f * num * normal.X;
-            result.Y = vector.Y - 2f * num * normal.Y;
-            result.Z = vector.Z - 2f * num * normal.Z;
+            if (vector.sqrMagnitude > maxLength * maxLength)
+                return vector.normalized * maxLength;
+            else
+                return vector;
         }
 
-        /// <summary>
-        /// Returns a vector that contains the lowest value from each matching pair of components.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D Min(Vector3D value1, Vector3D value2)
+        public static double Magnitude(Vector3d a)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X < value2.X ? value1.X : value2.X;
-            Vector3D.Y = value1.Y < value2.Y ? value1.Y : value2.Y;
-            Vector3D.Z = value1.Z < value2.Z ? value1.Z : value2.Z;
-            return Vector3D;
+            return Math.Sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
         }
 
-        /// <summary>
-        /// Returns a vector that contains the lowest value from each matching pair of components.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="result">[OutAttribute] The minimized vector.</param>
-        public static void Min(ref Vector3D value1, ref Vector3D value2, out Vector3D result)
+        public static double SqrMagnitude(Vector3d a)
         {
-            result.X = value1.X < value2.X ? value1.X : value2.X;
-            result.Y = value1.Y < value2.Y ? value1.Y : value2.Y;
-            result.Z = value1.Z < value2.Z ? value1.Z : value2.Z;
+            return a.x * a.x + a.y * a.y + a.z * a.z;
         }
 
-        /// <summary>
-        /// Returns a vector that contains the highest value from each matching pair of components.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D Max(Vector3D value1, Vector3D value2)
+        public static Vector3d Min(Vector3d lhs, Vector3d rhs)
         {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X > value2.X ? value1.X : value2.X;
-            Vector3D.Y = value1.Y > value2.Y ? value1.Y : value2.Y;
-            Vector3D.Z = value1.Z > value2.Z ? value1.Z : value2.Z;
-            return Vector3D;
+            return new Vector3d(Mathd.Min(lhs.x, rhs.x), Mathd.Min(lhs.y, rhs.y), Mathd.Min(lhs.z, rhs.z));
         }
 
-        /// <summary>
-        /// Returns a vector that contains the highest value from each matching pair of components.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="result">[OutAttribute] The maximized vector.</param>
-        public static void Max(ref Vector3D value1, ref Vector3D value2, out Vector3D result)
+        public static Vector3d Max(Vector3d lhs, Vector3d rhs)
         {
-            result.X = value1.X > value2.X ? value1.X : value2.X;
-            result.Y = value1.Y > value2.Y ? value1.Y : value2.Y;
-            result.Z = value1.Z > value2.Z ? value1.Z : value2.Z;
+            return new Vector3d(Mathd.Max(lhs.x, rhs.x), Mathd.Max(lhs.y, rhs.y), Mathd.Max(lhs.z, rhs.z));
         }
 
-        /// <summary>
-        /// Restricts a value to be within a specified range.
-        /// </summary>
-        /// <param name="value1">The value to clamp.</param><param name="min">The minimum value.</param><param name="max">The maximum value.</param>
-        public static Vector3D Clamp(Vector3D value1, Vector3D min, Vector3D max)
+        [Obsolete("Use Vector3d.Angle instead. AngleBetween uses radians instead of degrees and was deprecated for this reason")]
+        public static double AngleBetween(Vector3d from, Vector3d to)
         {
-            double num1 = value1.X;
-            double num2 = num1 > max.X ? max.X : num1;
-            double num3 = num2 < min.X ? min.X : num2;
-            double num4 = value1.Y;
-            double num5 = num4 > max.Y ? max.Y : num4;
-            double num6 = num5 < min.Y ? min.Y : num5;
-            double num7 = value1.Z;
-            double num8 = num7 > max.Z ? max.Z : num7;
-            double num9 = num8 < min.Z ? min.Z : num8;
-            Vector3D Vector3D;
-            Vector3D.X = num3;
-            Vector3D.Y = num6;
-            Vector3D.Z = num9;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Restricts a value to be within a specified range.
-        /// </summary>
-        /// <param name="value1">The value to clamp.</param><param name="min">The minimum value.</param><param name="max">The maximum value.</param><param name="result">[OutAttribute] The clamped value.</param>
-        public static void Clamp(ref Vector3D value1, ref Vector3D min, ref Vector3D max, out Vector3D result)
-        {
-            double num1 = value1.X;
-            double num2 = num1 > max.X ? max.X : num1;
-            double num3 = num2 < min.X ? min.X : num2;
-            double num4 = value1.Y;
-            double num5 = num4 > max.Y ? max.Y : num4;
-            double num6 = num5 < min.Y ? min.Y : num5;
-            double num7 = value1.Z;
-            double num8 = num7 > max.Z ? max.Z : num7;
-            double num9 = num8 < min.Z ? min.Z : num8;
-            result.X = num3;
-            result.Y = num6;
-            result.Z = num9;
-        }
-
-        /// <summary>
-        /// Performs a linear interpolation between two vectors.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="amount">Value between 0 and 1 indicating the weight of value2.</param>
-        public static Vector3D Lerp(Vector3D value1, Vector3D value2, double amount)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X + (value2.X - value1.X) * amount;
-            Vector3D.Y = value1.Y + (value2.Y - value1.Y) * amount;
-            Vector3D.Z = value1.Z + (value2.Z - value1.Z) * amount;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Performs a linear interpolation between two vectors.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="amount">Value between 0 and 1 indicating the weight of value2.</param><param name="result">[OutAttribute] The result of the interpolation.</param>
-        public static void Lerp(ref Vector3D value1, ref Vector3D value2, double amount, out Vector3D result)
-        {
-            result.X = value1.X + (value2.X - value1.X) * amount;
-            result.Y = value1.Y + (value2.Y - value1.Y) * amount;
-            result.Z = value1.Z + (value2.Z - value1.Z) * amount;
-        }
-
-        /// <summary>
-        /// Returns a Vector3D containing the 3D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 3D triangle.
-        /// </summary>
-        /// <param name="value1">A Vector3D containing the 3D Cartesian coordinates of vertex 1 of the triangle.</param><param name="value2">A Vector3D containing the 3D Cartesian coordinates of vertex 2 of the triangle.</param><param name="value3">A Vector3D containing the 3D Cartesian coordinates of vertex 3 of the triangle.</param><param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in value2).</param><param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in value3).</param>
-        public static Vector3D Barycentric(Vector3D value1, Vector3D value2, Vector3D value3, double amount1, double amount2)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X + amount1 * (value2.X - value1.X) + amount2 * (value3.X - value1.X);
-            Vector3D.Y = value1.Y + amount1 * (value2.Y - value1.Y) + amount2 * (value3.Y - value1.Y);
-            Vector3D.Z = value1.Z + amount1 * (value2.Z - value1.Z) + amount2 * (value3.Z - value1.Z);
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Returns a Vector3D containing the 3D Cartesian coordinates of a point specified in barycentric (areal) coordinates relative to a 3D triangle.
-        /// </summary>
-        /// <param name="value1">A Vector3D containing the 3D Cartesian coordinates of vertex 1 of the triangle.</param><param name="value2">A Vector3D containing the 3D Cartesian coordinates of vertex 2 of the triangle.</param><param name="value3">A Vector3D containing the 3D Cartesian coordinates of vertex 3 of the triangle.</param><param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in value2).</param><param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in value3).</param><param name="result">[OutAttribute] The 3D Cartesian coordinates of the specified point are placed in this Vector3D on exit.</param>
-        public static void Barycentric(ref Vector3D value1, ref Vector3D value2, ref Vector3D value3, double amount1, double amount2, out Vector3D result)
-        {
-            result.X = value1.X + amount1 * (value2.X - value1.X) + amount2 * (value3.X - value1.X);
-            result.Y = value1.Y + amount1 * (value2.Y - value1.Y) + amount2 * (value3.Y - value1.Y);
-            result.Z = value1.Z + amount1 * (value2.Z - value1.Z) + amount2 * (value3.Z - value1.Z);
-        }
-
-        /// <summary>
-        /// Interpolates between two values using a cubic equation.
-        /// </summary>
-        /// <param name="value1">Source value.</param><param name="value2">Source value.</param><param name="amount">Weighting value.</param>
-        public static Vector3D SmoothStep(Vector3D value1, Vector3D value2, double amount)
-        {
-            amount = amount > 1.0 ? 1f : (amount < 0.0 ? 0.0f : amount);
-            amount = amount * amount * (3.0 - 2.0 * amount);
-            Vector3D Vector3D;
-            Vector3D.X = value1.X + (value2.X - value1.X) * amount;
-            Vector3D.Y = value1.Y + (value2.Y - value1.Y) * amount;
-            Vector3D.Z = value1.Z + (value2.Z - value1.Z) * amount;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Interpolates between two values using a cubic equation.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="amount">Weighting value.</param><param name="result">[OutAttribute] The interpolated value.</param>
-        public static void SmoothStep(ref Vector3D value1, ref Vector3D value2, double amount, out Vector3D result)
-        {
-            amount = amount > 1.0 ? 1f : (amount < 0.0 ? 0.0f : amount);
-            amount = amount * amount * (3.0 - 2.0 * amount);
-            result.X = value1.X + (value2.X - value1.X) * amount;
-            result.Y = value1.Y + (value2.Y - value1.Y) * amount;
-            result.Z = value1.Z + (value2.Z - value1.Z) * amount;
-        }
-
-        /// <summary>
-        /// Performs a Catmull-Rom interpolation using the specified positions.
-        /// </summary>
-        /// <param name="value1">The first position in the interpolation.</param><param name="value2">The second position in the interpolation.</param><param name="value3">The third position in the interpolation.</param><param name="value4">The fourth position in the interpolation.</param><param name="amount">Weighting factor.</param>
-        public static Vector3D CatmullRom(Vector3D value1, Vector3D value2, Vector3D value3, Vector3D value4, double amount)
-        {
-            double num1 = amount * amount;
-            double num2 = amount * num1;
-            Vector3D Vector3D;
-            Vector3D.X = 0.5 * (2.0 * value2.X + (-value1.X + value3.X) * amount + (2.0 * value1.X - 5.0 * value2.X + 4.0 * value3.X - value4.X) * num1 + (-value1.X + 3.0 * value2.X - 3.0 * value3.X + value4.X) * num2);
-            Vector3D.Y = 0.5 * (2.0 * value2.Y + (-value1.Y + value3.Y) * amount + (2.0 * value1.Y - 5.0 * value2.Y + 4.0 * value3.Y - value4.Y) * num1 + (-value1.Y + 3.0 * value2.Y - 3.0 * value3.Y + value4.Y) * num2);
-            Vector3D.Z = 0.5 * (2.0 * value2.Z + (-value1.Z + value3.Z) * amount + (2.0 * value1.Z - 5.0 * value2.Z + 4.0 * value3.Z - value4.Z) * num1 + (-value1.Z + 3.0 * value2.Z - 3.0 * value3.Z + value4.Z) * num2);
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Performs a Catmull-Rom interpolation using the specified positions.
-        /// </summary>
-        /// <param name="value1">The first position in the interpolation.</param><param name="value2">The second position in the interpolation.</param><param name="value3">The third position in the interpolation.</param><param name="value4">The fourth position in the interpolation.</param><param name="amount">Weighting factor.</param><param name="result">[OutAttribute] A vector that is the result of the Catmull-Rom interpolation.</param>
-        public static void CatmullRom(ref Vector3D value1, ref Vector3D value2, ref Vector3D value3, ref Vector3D value4, double amount, out Vector3D result)
-        {
-            double num1 = amount * amount;
-            double num2 = amount * num1;
-            result.X = 0.5 * (2.0 * value2.X + (-value1.X + value3.X) * amount + (2.0 * value1.X - 5.0 * value2.X + 4.0 * value3.X - value4.X) * num1 + (-value1.X + 3.0 * value2.X - 3.0 * value3.X + value4.X) * num2);
-            result.Y = 0.5 * (2.0 * value2.Y + (-value1.Y + value3.Y) * amount + (2.0 * value1.Y - 5.0 * value2.Y + 4.0 * value3.Y - value4.Y) * num1 + (-value1.Y + 3.0 * value2.Y - 3.0 * value3.Y + value4.Y) * num2);
-            result.Z = 0.5 * (2.0 * value2.Z + (-value1.Z + value3.Z) * amount + (2.0 * value1.Z - 5.0 * value2.Z + 4.0 * value3.Z - value4.Z) * num1 + (-value1.Z + 3.0 * value2.Z - 3.0 * value3.Z + value4.Z) * num2);
-        }
-
-        /// <summary>
-        /// Performs a Hermite spline interpolation.
-        /// </summary>
-        /// <param name="value1">Source position vector.</param><param name="tangent1">Source tangent vector.</param><param name="value2">Source position vector.</param><param name="tangent2">Source tangent vector.</param><param name="amount">Weighting factor.</param>
-        public static Vector3D Hermite(Vector3D value1, Vector3D tangent1, Vector3D value2, Vector3D tangent2, double amount)
-        {
-            double num1 = amount * amount;
-            double num2 = amount * num1;
-            double num3 = 2.0 * num2 - 3.0 * num1 + 1.0;
-            double num4 = -2.0 * num2 + 3.0 * num1;
-            double num5 = num2 - 2f * num1 + amount;
-            double num6 = num2 - num1;
-            Vector3D Vector3D;
-            Vector3D.X = value1.X * num3 + value2.X * num4 + tangent1.X * num5 + tangent2.X * num6;
-            Vector3D.Y = value1.Y * num3 + value2.Y * num4 + tangent1.Y * num5 + tangent2.Y * num6;
-            Vector3D.Z = value1.Z * num3 + value2.Z * num4 + tangent1.Z * num5 + tangent2.Z * num6;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Performs a Hermite spline interpolation.
-        /// </summary>
-        /// <param name="value1">Source position vector.</param><param name="tangent1">Source tangent vector.</param><param name="value2">Source position vector.</param><param name="tangent2">Source tangent vector.</param><param name="amount">Weighting factor.</param><param name="result">[OutAttribute] The result of the Hermite spline interpolation.</param>
-        public static void Hermite(ref Vector3D value1, ref Vector3D tangent1, ref Vector3D value2, ref Vector3D tangent2, double amount, out Vector3D result)
-        {
-            double num1 = amount * amount;
-            double num2 = amount * num1;
-            double num3 = 2.0 * num2 - 3.0 * num1 + 1.0;
-            double num4 = -2.0 * num2 + 3.0 * num1;
-            double num5 = num2 - 2f * num1 + amount;
-            double num6 = num2 - num1;
-            result.X = value1.X * num3 + value2.X * num4 + tangent1.X * num5 + tangent2.X * num6;
-            result.Y = value1.Y * num3 + value2.Y * num4 + tangent1.Y * num5 + tangent2.Y * num6;
-            result.Z = value1.Z * num3 + value2.Z * num4 + tangent1.Z * num5 + tangent2.Z * num6;
-        }
-
-
-
-
-        /// <summary>
-        /// Returns a vector pointing in the opposite direction.
-        /// </summary>
-        /// <param name="value">Source vector.</param>
-        public static Vector3D Negate(Vector3D value)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = -value.X;
-            Vector3D.Y = -value.Y;
-            Vector3D.Z = -value.Z;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Returns a vector pointing in the opposite direction.
-        /// </summary>
-        /// <param name="value">Source vector.</param><param name="result">[OutAttribute] Vector pointing in the opposite direction.</param>
-        public static void Negate(ref Vector3D value, out Vector3D result)
-        {
-            result.X = -value.X;
-            result.Y = -value.Y;
-            result.Z = -value.Z;
-        }
-
-        /// <summary>
-        /// Adds two vectors.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D Add(Vector3D value1, Vector3D value2)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X + value2.X;
-            Vector3D.Y = value1.Y + value2.Y;
-            Vector3D.Z = value1.Z + value2.Z;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Adds two vectors.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="result">[OutAttribute] Sum of the source vectors.</param>
-        public static void Add(ref Vector3D value1, ref Vector3D value2, out Vector3D result)
-        {
-            result.X = value1.X + value2.X;
-            result.Y = value1.Y + value2.Y;
-            result.Z = value1.Z + value2.Z;
-        }
-
-        /// <summary>
-        /// Subtracts a vector from a vector.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D Subtract(Vector3D value1, Vector3D value2)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X - value2.X;
-            Vector3D.Y = value1.Y - value2.Y;
-            Vector3D.Z = value1.Z - value2.Z;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Subtracts a vector from a vector.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="result">[OutAttribute] The result of the subtraction.</param>
-        public static void Subtract(ref Vector3D value1, ref Vector3D value2, out Vector3D result)
-        {
-            result.X = value1.X - value2.X;
-            result.Y = value1.Y - value2.Y;
-            result.Z = value1.Z - value2.Z;
-        }
-
-        /// <summary>
-        /// Multiplies the components of two vectors by each other.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param>
-        public static Vector3D Multiply(Vector3D value1, Vector3D value2)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X * value2.X;
-            Vector3D.Y = value1.Y * value2.Y;
-            Vector3D.Z = value1.Z * value2.Z;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Multiplies the components of two vectors by each other.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Source vector.</param><param name="result">[OutAttribute] The result of the multiplication.</param>
-        public static void Multiply(ref Vector3D value1, ref Vector3D value2, out Vector3D result)
-        {
-            result.X = value1.X * value2.X;
-            result.Y = value1.Y * value2.Y;
-            result.Z = value1.Z * value2.Z;
-        }
-
-        /// <summary>
-        /// Multiplies a vector by a scalar value.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="scaleFactor">Scalar value.</param>
-        public static Vector3D Multiply(Vector3D value1, double scaleFactor)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X * scaleFactor;
-            Vector3D.Y = value1.Y * scaleFactor;
-            Vector3D.Z = value1.Z * scaleFactor;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Multiplies a vector by a scalar value.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="scaleFactor">Scalar value.</param><param name="result">[OutAttribute] The result of the multiplication.</param>
-        public static void Multiply(ref Vector3D value1, double scaleFactor, out Vector3D result)
-        {
-            result.X = value1.X * scaleFactor;
-            result.Y = value1.Y * scaleFactor;
-            result.Z = value1.Z * scaleFactor;
-        }
-
-        /// <summary>
-        /// Divides the components of a vector by the components of another vector.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">Divisor vector.</param>
-        public static Vector3D Divide(Vector3D value1, Vector3D value2)
-        {
-            Vector3D Vector3D;
-            Vector3D.X = value1.X / value2.X;
-            Vector3D.Y = value1.Y / value2.Y;
-            Vector3D.Z = value1.Z / value2.Z;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Divides the components of a vector by the components of another vector.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">The divisor.</param><param name="result">[OutAttribute] The result of the division.</param>
-        public static void Divide(ref Vector3D value1, ref Vector3D value2, out Vector3D result)
-        {
-            result.X = value1.X / value2.X;
-            result.Y = value1.Y / value2.Y;
-            result.Z = value1.Z / value2.Z;
-        }
-
-        /// <summary>
-        /// Divides a vector by a scalar value.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">The divisor.</param>
-        public static Vector3D Divide(Vector3D value1, double value2)
-        {
-            double num = 1f / value2;
-            Vector3D Vector3D;
-            Vector3D.X = value1.X * num;
-            Vector3D.Y = value1.Y * num;
-            Vector3D.Z = value1.Z * num;
-            return Vector3D;
-        }
-
-        /// <summary>
-        /// Divides a vector by a scalar value.
-        /// </summary>
-        /// <param name="value1">Source vector.</param><param name="value2">The divisor.</param><param name="result">[OutAttribute] The result of the division.</param>
-        public static void Divide(ref Vector3D value1, double value2, out Vector3D result)
-        {
-            double num = 1f / value2;
-            result.X = value1.X * num;
-            result.Y = value1.Y * num;
-            result.Z = value1.Z * num;
+            return Mathd.Acos(Mathd.Clamp(Vector3d.Dot(from.normalized, to.normalized), -1d, 1d));
         }
     }
 }

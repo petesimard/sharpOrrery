@@ -33,8 +33,22 @@ public class Universe : MonoBehaviour
         init();
     }
 
+
     public void init()
     {
+        var eulers = new Vector3(50, 0, 90);
+        var eulersD = new Vector3d(50, 0, 90);
+
+
+        Debug.Log(".Euler: " + Quaternion.Euler(eulers)); // (0.6, 0.4, -0.4, 0.5)
+        Debug.Log(".EulerD: " + QuaternionD.EulerDeg(eulersD)); // (0.6, 0.4, -0.4, 0.5)
+
+        return;
+        // Test Quaternion Library
+
+
+
+
         //name = scenario.name;
         //var initialSettings = _.extend({}, scenario.defaultGuiSettings, qstrSettings, scenario.forcedGuiSettings);
         //console.log(initialSettings);
