@@ -282,14 +282,8 @@ public class OrbitalElements
 
     private void CalculateVariation(OrbitalElementsPieces orbitalElementsPieces, FieldInfo fieldInfo, OrbitalElementsPieces computed, double T)
     {
-/*        Debug.Log(fieldInfo);
-        Debug.Log(orbitalElementsPieces.cy);
-        Debug.Log(orbitalElementsPieces.day);*/
-/*
-        					variation = orbitalElements.cy ? orbitalElements.cy[el] : (orbitalElements.day[el] * ns.CENTURY);
-							variation = variation || 0;
-							computed[el] = orbitalElements.base[el] + (variation * T);
- */
+        if (!((double?) fieldInfo.GetValue(orbitalElements.baseElements)).HasValue)
+            return;
 
         double variation = 0;
 
@@ -306,16 +300,9 @@ public class OrbitalElements
                 variation = baseVal.Value *ns.CENTURY;
         }
 
-        if (((double?) fieldInfo.GetValue(orbitalElements.baseElements)).HasValue)
-        {
-            double val = (double)fieldInfo.GetValue(orbitalElements.baseElements) + (variation * T);
-            fieldInfo.SetValue(computed, val);
-        }
-        else
-        {
-            double val = (variation * T);
-            fieldInfo.SetValue(computed, val);
-        }
+
+        double val = (double)fieldInfo.GetValue(orbitalElements.baseElements) + (variation * T);
+        fieldInfo.SetValue(computed, val);
     }
 
     public Vector3d getPositionFromElements(OrbitalElementsPieces computed)

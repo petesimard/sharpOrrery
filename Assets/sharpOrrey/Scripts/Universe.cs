@@ -56,6 +56,7 @@ public class Universe : MonoBehaviour
 				}.bind(this));
                  */
 
+        var tempIsPlaying = playing;
         playing = false;
         epochTime = 0;
 
@@ -72,6 +73,8 @@ public class Universe : MonoBehaviour
         initBodies(scenario);
         ticker.setSecondsPerTick(scenario.secondsPerTick);
         ticker.setCalculationsPerTick(scenario.calculationsPerTick.HasValue ? scenario.calculationsPerTick.Value : ns.defaultCalculationsPerTick);
+
+        playing = tempIsPlaying;
     }
 
 
