@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using sharpOrrery;
+using SharpOrrery;
 using UnityEngine;
 
 public class Universe : MonoBehaviour
@@ -42,9 +42,9 @@ public class Universe : MonoBehaviour
         //console.log(initialSettings);
 
         //Universe is, well, global
-        ns.U = this;
+        SO.U = this;
 
-        usePhysics = scenario.usePhysics.HasValue ? scenario.usePhysics : ns.USE_PHYSICS_BY_DEFAULT;
+        usePhysics = scenario.usePhysics.HasValue ? scenario.usePhysics : SO.USE_PHYSICS_BY_DEFAULT;
 
         /*
             		this.dateDisplay = Gui.addDate(function(){
@@ -72,7 +72,7 @@ public class Universe : MonoBehaviour
 
         initBodies(scenario);
         ticker.setSecondsPerTick(scenario.secondsPerTick);
-        ticker.setCalculationsPerTick(scenario.calculationsPerTick.HasValue ? scenario.calculationsPerTick.Value : ns.defaultCalculationsPerTick);
+        ticker.setCalculationsPerTick(scenario.calculationsPerTick.HasValue ? scenario.calculationsPerTick.Value : SO.defaultCalculationsPerTick);
 
         playing = tempIsPlaying;
     }
@@ -231,9 +231,9 @@ public class Universe : MonoBehaviour
         double? smallestSMA = bodies.Values.Where(b => !b.isCentral && b.orbit != null && (b.relativeTo == null || b.relativeTo == centralBody)).Max(b => b.orbit.baseElements.a);
 
 
-        smallestSMA *= ns.KM;
-        largestSMA *= ns.KM;
-        largestRadius *= ns.KM;
+        smallestSMA *= SO.KM;
+        largestSMA *= SO.KM;
+        largestRadius *= SO.KM;
 
         //console.log('universe size', largestSMA, ' m');
 
@@ -271,7 +271,7 @@ public class Universe : MonoBehaviour
 
     public double getEpochTime(DateTime userDate)
     {
-        return (userDate.GetTime() - ns.J2000) / 1000;
+        return (userDate.GetTime() - SO.J2000) / 1000;
     }
 
     public bool isPlaying()

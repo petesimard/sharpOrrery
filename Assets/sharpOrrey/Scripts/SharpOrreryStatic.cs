@@ -3,9 +3,9 @@ using System.Globalization;
 using UnityEngine;
 using System.Collections;
 
-namespace sharpOrrery
+namespace SharpOrrery
 {
-    public static class ns
+    public static class SO
     {
 
         public static string name = "orbit";
@@ -33,7 +33,7 @@ namespace sharpOrrery
 	    //duration in days
         public static double YEAR = 365.25;
 	    //duration in days
-        public static double CENTURY = 100.0 * ns.YEAR;
+        public static double CENTURY = 100.0 * SO.YEAR;
         public static double SIDERAL_DAY = 3600 * 23.9344696;
 
         public static double J2000 = new DateTime(2000, 1, 1, 12, 0, 0, DateTimeKind.Utc).GetTime();

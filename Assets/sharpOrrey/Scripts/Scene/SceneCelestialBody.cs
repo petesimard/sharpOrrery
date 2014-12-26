@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SharpOrrery;
+using UnityEngine;
 using System.Collections;
 
 public class SceneCelestialBody : MonoBehaviour
