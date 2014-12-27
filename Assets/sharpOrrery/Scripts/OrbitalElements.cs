@@ -289,7 +289,7 @@ namespace SharpOrrery
 
             double variation = 0;
 
-            if (orbitalElementsPieces.cy != null)
+            if (orbitalElements.cy != null)
             {
                 var baseVal = (double?) fieldInfo.GetValue(orbitalElements.cy);
                 if (baseVal.HasValue)

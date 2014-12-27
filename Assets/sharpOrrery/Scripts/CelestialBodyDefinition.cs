@@ -14,6 +14,7 @@ namespace SharpOrrery
         public double tilt;
 
         public OrbitalElements.OrbitalElementsPieces orbit;
+        public CelestialBodyDefinition relativeTo;
 
         internal void AssignDataToCelestialBody(CelestialBody celestialBody)
         {

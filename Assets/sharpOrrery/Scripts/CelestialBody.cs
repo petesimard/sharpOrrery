@@ -151,37 +151,42 @@ namespace SharpOrrery
 			Calculates orbit line from orbital elements. By default, the orbital elements might not be osculating, i.e. they might account for perturbations. But the given orbit would thus be different slightly from the planet's path, as the velocity is calculated by considering that the orbit is elliptic.
 			*/
 
-        private List<Vector3d> getOrbitVertices(bool isElliptic)
+        public List<Vector3d> getOrbitVertices(bool isElliptic)
         {
             var points = new List<Vector3d>();
 
             double startTime = getEpochTime(SO.U.currentTime);
             OrbitalElements.OrbitalElementsPieces elements = orbitalElements.calculateElements(startTime);
             double period = orbitalElements.calculatePeriod(elements, relativeTo);
+            if (period == 0)
+                return null;
 
             double incr = period/360.0;
-            var defaultOrbitalElements = new OrbitalElements();
+            OrbitalElements.OrbitalElementsPieces defaultOrbitalElements = null;
 
             //if we want an elliptic orbit from the current planet's position (i.e. the ellipse from which the velocity was computed with vis-viva), setup fake orbital elements from the position
             if (isElliptic)
             {
-                defaultOrbitalElements.orbitalElements.baseElements = orbitalElements.calculateElements(startTime, null);
+                defaultOrbitalElements = new OrbitalElements.OrbitalElementsPieces();
 
-                defaultOrbitalElements.orbitalElements.day = new OrbitalElements.OrbitalElementsPieces {M = 1};
-                defaultOrbitalElements.orbitalElements.baseElements.a /= 1000;
-                defaultOrbitalElements.orbitalElements.baseElements.i /= SO.DEG_TO_RAD;
-                defaultOrbitalElements.orbitalElements.baseElements.o /= SO.DEG_TO_RAD;
-                defaultOrbitalElements.orbitalElements.baseElements.w /= SO.DEG_TO_RAD;
-                defaultOrbitalElements.orbitalElements.baseElements.M /= SO.DEG_TO_RAD;
-                incr = SO.DAY;
+                defaultOrbitalElements.baseElements = orbitalElements.calculateElements(startTime, null);
+
+                defaultOrbitalElements.day = new OrbitalElements.OrbitalElementsPieces {M = 1};
+                defaultOrbitalElements.baseElements.a /= 1000;
+                defaultOrbitalElements.baseElements.i /= SO.DEG_TO_RAD;
+                defaultOrbitalElements.baseElements.o /= SO.DEG_TO_RAD;
+                defaultOrbitalElements.baseElements.w /= SO.DEG_TO_RAD;
+                defaultOrbitalElements.baseElements.M /= SO.DEG_TO_RAD;
+                //incr = SO.DAY; 
                 startTime = 0;
             }
 
+            //Debug.Log(name + " " + incr);
             double total = 0.0;
             Vector3d? lastPoint = null;
             for (int i = 0; total < 360; i++)
             {
-                OrbitalElements.OrbitalElementsPieces computed = orbitalElements.calculateElements(startTime + (incr*i), defaultOrbitalElements.orbitalElements);
+                OrbitalElements.OrbitalElementsPieces computed = orbitalElements.calculateElements(startTime + (incr*i), defaultOrbitalElements);
                 //if(this.name=='moon')console.log(startTime+(incr*i));
                 Vector3d point = orbitalElements.getPositionFromElements(computed);
                 if (lastPoint.HasValue)
@@ -193,7 +198,7 @@ namespace SharpOrrery
                         for (int j = 0; j < angle; j++)
                         {
                             double step = (incr*(i - 1)) + ((incr/angle)*j);
-                            computed = orbitalElements.calculateElements(startTime + step, defaultOrbitalElements.orbitalElements);
+                            computed = orbitalElements.calculateElements(startTime + step, defaultOrbitalElements);
                             point = orbitalElements.getPositionFromElements(computed);
                             //when finishing the circle try to avoid going too far over 360 (break after first point going over 360)
                             if (total > 358)
