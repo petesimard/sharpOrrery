@@ -1,4 +1,5 @@
-﻿using SharpOrrery;
+﻿using System;
+using SharpOrrery;
 using UnityEngine;
 using System.Collections;
 
@@ -15,6 +16,10 @@ namespace SharpOrrery
 
         public OrbitalElements.OrbitalElementsPieces orbit;
         public CelestialBodyDefinition relativeTo;
+        public Func<Double, OrbitalElements.OrbitalElementsPieces> orbitCalculator;
+        public bool calculateFromElements;
+
+        public Action<CelestialBody> customInitialize;
 
         internal void AssignDataToCelestialBody(CelestialBody celestialBody)
         {
@@ -24,6 +29,12 @@ namespace SharpOrrery
             celestialBody.k = k;
             celestialBody.orbit = orbit;
             celestialBody.tilt = tilt;
+            
+            if (relativeTo != null)
+                celestialBody.relativeTo = SO.U.getBody(relativeTo.title);
+
+            celestialBody.orbitCalculator = orbitCalculator;
+            celestialBody.calculateFromElements = calculateFromElements;
         }
     }
 }

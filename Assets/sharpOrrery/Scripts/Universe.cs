@@ -82,7 +82,7 @@ public class Universe : MonoBehaviour
     {
         bodies = new Dictionary<string, CelestialBody>();
 
-        foreach (string bodyName in scenario.bodies.Keys)
+        foreach (string bodyName in scenario.common)
         {
             var body = new CelestialBody();
             body.AssignInitialValues(scenario.bodies[bodyName]);
@@ -96,9 +96,9 @@ public class Universe : MonoBehaviour
 
     private void initBodies(Scenario scenario)
     {
-        foreach (var celestialBodyKV in bodies)
+        foreach (string bodyName in scenario.common)
         {
-            CelestialBody body = celestialBodyKV.Value;
+            CelestialBody body = bodies[bodyName];
 
             if (!scenario.calculateAll && !body.isCentral)
             {
@@ -213,7 +213,21 @@ public class Universe : MonoBehaviour
         if (!bodies.ContainsKey(body.name))
             return null;
 
-        return bodies[name];
+        return bodies[body.name];
+    }
+
+    // Original code used null name to represent central body
+    public CelestialBody getBody(string bodyName)
+    {
+        if (bodyName == null)
+        {
+            return centralBody;
+        }
+
+        if (!bodies.ContainsKey(bodyName))
+            return null;
+
+        return bodies[bodyName];
     }
 
     private void calculateDimensions()

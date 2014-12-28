@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SharpOrrery;
 using UnityEngine;
 
@@ -170,46 +171,45 @@ public class ScenarioLoader : MonoBehaviour
                            }
                };
         celestialBodyDefinitions[body.title] = body;
-        /*
+
         body = new CelestialBodyDefinition()
-        {
-				title = "The Moon",
-				mass = 7.3477e22,
-				radius = 1738.1,
-				sideralDay = (27.3215782 * SO.DAY) ,
-				tilt = 1.5424,
-				relativeTo = celestialBodyDefinitions["The Earth"],
-				orbitCalculator = MoonRealOrbit,
-				calculateFromElements = true,
-				orbit= new OrbitalElements.OrbitalElementsPieces(){
-					baseElements = new OrbitalElements.OrbitalElementsPieces(){
-						a = 384400,
-						e = 0.0554,
-						w = 318.15,
-						M = 135.27,
-						i = 5.16,
-						o = 125.08
-					},
-					day = new OrbitalElements.OrbitalElementsPieces(){
-						a = 0,
-						e = 0,
-						i = 0,
-						M = 13.176358,//360 / 27.321582,
-						w = (360 / 5.997) / 365.25,
-						o = (360 / 18.600) / 365.25
-					}	
-				},
-				getMapRotation : function(angle){
-					if(angle > 0) {
-						return angle - Math.PI;
-					}
-					return angle + Math.PI;
-				},
-				customInitialize : function() {
-					if(this.relativeTo !== 'earth') return;
-					this.baseMapRotation = this.getMapRotation(this.getAngleTo('earth'));
-					this.nextCheck = this.sideralDay;
-				},
+               {
+                   title = "The Moon",
+                   mass = 7.3477e22,
+                   radius = 1738.1,
+                   sideralDay = (27.3215782*SO.DAY),
+                   tilt = 1.5424,
+                   relativeTo = celestialBodyDefinitions["The Earth"],
+                   orbitCalculator = MoonOrbitCalculator.Calculate,
+                   calculateFromElements = true,
+                   orbit = new OrbitalElements.OrbitalElementsPieces()
+                           {
+                               baseElements = new OrbitalElements.OrbitalElementsPieces()
+                                              {
+                                                  a = 384400,
+                                                  e = 0.0554,
+                                                  w = 318.15,
+                                                  M = 135.27,
+                                                  i = 5.16,
+                                                  o = 125.08
+                                              },
+                               day = new OrbitalElements.OrbitalElementsPieces()
+                                     {
+                                         a = 0,
+                                         e = 0,
+                                         i = 0,
+                                         M = 13.176358, //360 / 27.321582,
+                                         w = (360/5.997)/365.25,
+                                         o = (360/18.600)/365.25
+                                     }
+                           },
+/*
+				customInitialize = celestialBody =>  {
+					if(celestialBody.relativeTo !== 'earth') return;
+					celestialBody.baseMapRotation = celestialBody.getMapRotation(SO.U.getBody("The Earth"));
+					celestialBody.nextCheck = celestialBody.sideralDay;
+				},*/
+/*
 				customAfterTick : function(time){
 					if(this.relativeTo !== 'earth') return;
 					//when a sideral day has passed, make sure that the near side is still facing the earth. Since the moon's orbit is heavily disturbed, some imprecision occurs in its orbit, and its duration is not always the same, especially in an incomplete scenario (where there are no sun/planets). Therefore, a correction is brought to the base map rotation, tweened so that is is not jerky.
@@ -217,7 +217,8 @@ public class ScenarioLoader : MonoBehaviour
 						this.nextCheck += this.sideralDay;
 						TweenMax.to(this, 2, {baseMapRotation : this.getMapRotation(this.getAngleTo('earth')), ease:Sine.easeInOut});
 					}
-				}
-			}*/
+				}*/
+               };
+        celestialBodyDefinitions[body.title] = body;
     }
 }

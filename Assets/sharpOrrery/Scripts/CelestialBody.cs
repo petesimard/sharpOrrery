@@ -26,7 +26,7 @@ namespace SharpOrrery
         private Action onOrbitCompleted;
 
         public OrbitalElements.OrbitalElementsPieces orbit;
-        private Func<double, OrbitalElements.OrbitalElementsPieces> orbitCalculator;
+        public Func<double, OrbitalElements.OrbitalElementsPieces> orbitCalculator;
         private OrbitalElements orbitalElements;
         public Vector3d position;
         private Vector3d? previousPosition;
@@ -158,7 +158,7 @@ namespace SharpOrrery
             double startTime = getEpochTime(SO.U.currentTime);
             OrbitalElements.OrbitalElementsPieces elements = orbitalElements.calculateElements(startTime);
             double period = orbitalElements.calculatePeriod(elements, relativeTo);
-            if (period == 0)
+            if (period == 0 || Double.IsNaN(period) || Double.IsInfinity(period))
                 return null;
 
             double incr = period/360.0;
